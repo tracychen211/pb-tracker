@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Pocketbook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* cozy cream + summer-by-the-sea palette */
+    --bg: #f3ead2;            /* warm cream paper */
+    --bg2: #ece0c2;
+    --card: #fdf8ea;          /* lighter card paper */
+    --ink: #4a4031;           /* soft brown ink */
+    --ink-soft: #8a7d63;
+    --line: #e0d2af;
+    --sky: #8fc4dd;           /* sea/sky blue */
+    --sky-deep: #5b9cba;
+    --grass: #8aab63;         /* soft grass green */
+    --grass-deep: #5f8541;
+    --sage: #cfe0c4;          /* panel sage */
+    --sage-ink: #5f8541;
+    --blue-soft: #cfe2ec;     /* panel blue */
+    --blue-ink: #4d86a4;
+    --rose: #f3d9da;          /* panel rose */
+    --rose-ink: #b9697a;
+    --sun: #f0b94a;           /* warm sun/terracotta accent */
+    --terra: #d98a52;
+    --accent: #d57b56;
+    --shadow: 0 2px 4px rgba(74,64,49,.08), 0 10px 28px rgba(74,64,49,.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { background: var(--bg); color: var(--ink); font-family: 'Nunito', sans-serif; }
+  body {
+    max-width: 720px; margin: 0 auto; padding: 0 16px 130px;
+    background-image:
+      radial-gradient(circle at 18% 12%, rgba(143,196,221,.10) 0, transparent 38%),
+      radial-gradient(circle at 85% 8%, rgba(240,185,74,.10) 0, transparent 32%),
+      radial-gradient(circle at 1px 1px, rgba(74,64,49,.03) 1px, transparent 0);
+    background-size: auto, auto, 22px 22px;
+  }
+  h1, h2, h3 { font-family: 'Baloo 2', cursive; font-weight: 600; letter-spacing: .01em; }
+  button { font-family: 'Nunito', sans-serif; }
+
+  /* ---------- decorative sky banner ---------- */
+  .skybar { position: relative; margin: 0 -16px 0; height: 92px; overflow: hidden;
+    background: linear-gradient(180deg, #a9d4e6 0%, #c3e2ee 55%, var(--bg) 100%); }
+  .skybar svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+  /* Lock */
+  .lock { position: fixed; inset: 0; background: var(--bg); z-index: 200; display: none; align-items: center; justify-content: center; padding: 22px;
+    background-image: radial-gradient(circle at 20% 15%, rgba(143,196,221,.15) 0, transparent 40%), radial-gradient(circle at 1px 1px, rgba(74,64,49,.04) 1px, transparent 0); background-size: auto, 22px 22px; }
+  .lock.on { display: flex; }
+  .lock-card { background: var(--card); border: 1.5px solid var(--line); border-radius: 26px; padding: 30px 24px; max-width: 380px; width: 100%; box-shadow: var(--shadow); text-align: center; position: relative; }
+  .lock-card .sprout { margin: 0 auto 4px; display: block; }
+  .lock-card h2 { font-size: 25px; margin: 6px 0 6px; color: var(--grass-deep); }
+  .lock-card p { font-size: 14.5px; color: var(--ink-soft); line-height: 1.5; margin-bottom: 18px; }
+  .lock-card input { width: 100%; padding: 15px; border: 1.5px solid var(--line); border-radius: 14px; background: var(--bg); font-family: 'Nunito',sans-serif; font-size: 18px; text-align: center; color: var(--ink); margin-bottom: 10px; }
+  .lock-card input:focus { outline: 2px solid var(--grass); border-color: var(--grass); }
+  .lock-card .lbtn { width: 100%; background: var(--grass-deep); color: #fff; border: none; border-radius: 14px; padding: 16px; font-family: 'Baloo 2',cursive; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 0 #4d6c34; }
+  .lock-card .lbtn:active { transform: translateY(2px); box-shadow: 0 2px 0 #4d6c34; }
+  .lock-err { color: var(--accent); font-size: 13.5px; min-height: 18px; margin-bottom: 6px; }
+  .lock-warn { font-size: 12.5px; color: #9a7b3a; background: #fbf0d6; border: 1.5px solid #ecdcb0; border-radius: 12px; padding: 10px 12px; margin-top: 16px; line-height: 1.4; text-align: left; }
+  .lock-import { margin-top: 14px; font-size: 13px; color: var(--ink-soft); }
+  .lock-import button { background: none; color: var(--grass-deep); border: none; padding: 0; font-size: 13px; font-family:'Nunito',sans-serif; cursor: pointer; text-decoration: underline; font-weight: 600; }
+
+  header { padding: 6px 4px 14px; display: flex; justify-content: space-between; align-items: center; }
+  .brand { font-family: 'Baloo 2', cursive; font-size: 27px; font-weight: 700; line-height: 1; color: var(--grass-deep); display: flex; align-items: center; gap: 7px; }
+  .brand span { color: var(--terra); }
+  .hdr-right { display: flex; align-items: center; gap: 8px; }
+  .month-pill { font-family: 'Baloo 2', cursive; font-size: 13px; font-weight: 600; color: var(--sky-deep); background: var(--card); border: 1.5px solid var(--line); border-radius: 100px; padding: 6px 14px; }
+  .icon-btn { background: var(--card); border: 1.5px solid var(--line); border-radius: 100px; width: 38px; height: 38px; cursor: pointer; font-size: 17px; display: grid; place-items: center; color: var(--ink-soft); }
+
+  .period { display: flex; background: var(--card); border: 1.5px solid var(--line); border-radius: 100px; padding: 4px; margin-bottom: 14px; box-shadow: var(--shadow); }
+  .period button { flex: 1; border: none; background: none; padding: 10px; border-radius: 100px; font-size: 14.5px; color: var(--ink-soft); cursor: pointer; font-weight: 600; }
+  .period button.act { background: var(--grass-deep); color: #fff; font-family: 'Baloo 2',cursive; }
+
+  .hero { background: var(--card); border: 1.5px solid var(--line); border-radius: 24px; padding: 22px; box-shadow: var(--shadow); margin-bottom: 14px; position: relative; overflow: hidden; }
+  .hero .hills { position: absolute; left: 0; right: 0; bottom: 0; height: 54px; width: 100%; opacity: .5; }
+  .hero-label { font-size: 13px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .06em; font-weight: 700; }
+  .hero-big { font-family: 'Baloo 2', cursive; font-size: 46px; font-weight: 700; line-height: 1; margin: 6px 0 2px; color: var(--grass-deep); position: relative; z-index: 1; }
+  .hero-big.neg { color: var(--accent); }
+  .hero-sub { font-size: 14px; color: var(--ink-soft); position: relative; z-index: 1; }
+  .hero-row { display: flex; gap: 10px; margin-top: 18px; position: relative; z-index: 1; }
+  .mini { flex: 1; background: var(--bg); border-radius: 16px; padding: 11px 13px; border: 1.5px solid var(--line); }
+  .mini .k { font-size: 11.5px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .03em; font-weight: 700; }
+  .mini .v { font-family: 'Baloo 2', cursive; font-size: 20px; font-weight: 600; margin-top: 3px; }
+  .mini .v.income { color: var(--grass-deep); }
+  .mini .v.spent { color: var(--terra); }
+
+  .mom { font-size: 13px; color: var(--ink-soft); background: var(--card); border: 1.5px solid var(--line); border-radius: 16px; padding: 11px 14px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .mom .arrow { font-family: 'Baloo 2',cursive; font-weight: 700; }
+  .mom .up { color: var(--accent); }
+  .mom .down { color: var(--grass-deep); }
+
+  .acct-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+  .acct { border-radius: 22px; padding: 16px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
+  .acct h3 { font-size: 15px; margin-bottom: 2px; }
+  .acct .tag { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; opacity: .85; font-weight: 700; }
+  .acct .amt { font-family: 'Baloo 2', cursive; font-size: 27px; font-weight: 700; line-height: 1.1; margin: 9px 0 12px; }
+  .acct .amt small { font-size: 14px; opacity: .6; font-weight: 400; }
+  .acct .acts { display: flex; gap: 6px; flex-wrap: wrap; }
+  .acct .acts button { border-radius: 11px; padding: 9px 8px; font-size: 12.5px; cursor: pointer; border: 1.5px solid; background: transparent; flex: 1; white-space: nowrap; font-weight: 600; }
+  .acct.debit { background: linear-gradient(150deg, #5b9cba 0%, #4d86a4 100%); color: #fbf6e8; }
+  .acct.debit .acts button { border-color: rgba(255,255,255,.4); color: #fbf6e8; background: rgba(255,255,255,.14); }
+  .acct.debit .acts button:active { background: rgba(255,255,255,.26); }
+  .acct.cash { background: linear-gradient(150deg, #9fbd76 0%, #8aab63 100%); color: #fbf6e8; }
+  .acct.cash .tag { color: rgba(251,246,232,.9); }
+  .acct.cash .acts button { border-color: rgba(255,255,255,.4); color: #fbf6e8; background: rgba(255,255,255,.14); }
+  .acct.cash .acts button:active { background: rgba(255,255,255,.26); }
+  .acct .leaf { position: absolute; right: -6px; top: -6px; opacity: .35; }
+  .acct .warn { font-size: 11px; margin-top: 8px; display: none; line-height: 1.35; background: rgba(255,255,255,.25); padding: 5px 8px; border-radius: 8px; }
+
+  .credit { background: var(--card); border: 1.5px solid var(--line); border-radius: 20px; padding: 15px 16px; margin-bottom: 14px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 13px; }
+  .credit .cc-ic { width: 42px; height: 42px; border-radius: 13px; background: var(--blue-soft); color: var(--blue-ink); display:grid; place-items:center; font-size: 19px; flex-shrink:0; }
+  .credit .cc-mid { flex: 1; min-width: 0; }
+  .credit .cc-mid .t1 { font-family: 'Baloo 2',cursive; font-size: 14.5px; font-weight: 600; }
+  .credit .cc-mid .t2 { font-size: 12px; color: var(--ink-soft); margin-top:1px; }
+  .credit .cc-amt { font-family: 'Baloo 2',cursive; font-size: 22px; font-weight: 700; color: var(--sky-deep); }
+  .credit .cc-amt.zero { color: var(--grass-deep); }
+  .credit .cc-pay { background: var(--sky-deep); color:#fff; border:none; border-radius:12px; padding:10px 13px; font-family:'Baloo 2',cursive; font-size:13px; font-weight:600; cursor:pointer; flex-shrink:0; }
+  .credit .cc-pay:disabled { background: var(--line); color: var(--ink-soft); }
+
+  .sec-head { display: flex; justify-content: space-between; align-items: center; margin: 24px 4px 12px; }
+  .sec-head h2 { font-size: 19px; color: var(--ink); display: flex; align-items: center; gap: 7px; }
+  .sec-head .edit { font-size: 13px; color: var(--grass-deep); cursor: pointer; border: none; background: none; font-weight: 700; }
+
+  .chart-card { background: var(--card); border: 1.5px solid var(--line); border-radius: 22px; padding: 20px; box-shadow: var(--shadow); margin-bottom: 14px; }
+  .chart-wrap { display: flex; align-items: center; gap: 20px; }
+  .donut { width: 130px; height: 130px; flex-shrink: 0; position: relative; }
+  .donut .center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .donut .center .ct-amt { font-family: 'Baloo 2',cursive; font-size: 20px; font-weight: 700; line-height: 1; }
+  .donut .center .ct-lbl { font-size: 10px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .04em; margin-top: 3px; font-weight: 700; }
+  .single-cat { display: flex; align-items: center; gap: 16px; padding: 4px 2px; }
+  .single-cat .sc-chip { width: 60px; height: 60px; border-radius: 18px; display: grid; place-items: center; font-size: 28px; flex-shrink: 0; }
+  .single-cat .sc-mid .sc-amt { font-family: 'Baloo 2',cursive; font-size: 30px; font-weight: 700; line-height: 1; color: var(--ink); }
+  .single-cat .sc-mid .sc-sub { font-size: 13.5px; color: var(--ink-soft); margin-top: 5px; }
+  .legend { flex: 1; min-width: 0; }
+  .legend .lg { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 13.5px; }
+  .legend .lg .sw { width: 12px; height: 12px; border-radius: 4px; flex-shrink: 0; }
+  .legend .lg .nm { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ink-soft); }
+  .legend .lg .vl { font-family: 'Baloo 2',cursive; font-weight: 700; }
+  .chart-empty { text-align: center; color: var(--ink-soft); font-style: italic; padding: 20px; font-size: 14px; }
+
+  .cat { background: var(--card); border: 1.5px solid var(--line); border-radius: 18px; padding: 13px 15px; margin-bottom: 9px; box-shadow: var(--shadow); }
+  .cat-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; gap: 8px; }
+  .cat-name { font-family: 'Baloo 2', cursive; font-size: 15px; font-weight: 600; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cat-name .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 7px; vertical-align: middle; }
+  .cat-nums { font-size: 13.5px; color: var(--ink-soft); white-space: nowrap; flex-shrink: 0; }
+  .cat-nums b { color: var(--ink); }
+  .cat-nums.over b { color: var(--accent); }
+  .bar { height: 10px; background: var(--bg); border-radius: 100px; overflow: hidden; border: 1.5px solid var(--line); }
+  .bar i { display: block; height: 100%; border-radius: 100px; transition: width .5s cubic-bezier(.4,0,.2,1); }
+  .pace { font-size: 11.5px; margin-top: 6px; color: var(--ink-soft); }
+  .pace.behind { color: var(--accent); }
+
+  .tx { display: flex; align-items: center; gap: 12px; padding: 13px 4px; border-bottom: 1.5px dotted var(--line); cursor: pointer; }
+  .tx:last-child { border-bottom: none; }
+  .tx:active { background: var(--card); border-radius: 12px; }
+  .tx-ic { width: 40px; height: 40px; border-radius: 13px; display: grid; place-items: center; font-size: 18px; flex-shrink: 0; background: var(--bg); border: 1.5px solid var(--line); }
+  .tx-mid { flex: 1; min-width: 0; }
+  .tx-mid .t1 { font-size: 15.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tx-mid .t2 { font-size: 12px; color: var(--ink-soft); margin-top: 1px; }
+  .pay-chip { font-size: 10.5px; padding: 1px 7px; border-radius: 100px; vertical-align: middle; font-weight: 600; }
+  .pay-cash { background: var(--sage); color: var(--sage-ink); }
+  .pay-card { background: var(--blue-soft); color: var(--blue-ink); }
+  .pay-debit { background: #e9dcc0; color: #9a7b3a; }
+  .tx-amt { font-family: 'Baloo 2', cursive; font-size: 17px; font-weight: 700; flex-shrink: 0; }
+  .tx-amt.in { color: var(--grass-deep); }
+  .tx-chev { color: var(--ink-soft); opacity: .4; font-size: 16px; flex-shrink: 0; }
+  .empty { text-align: center; color: var(--ink-soft); padding: 30px 10px; font-style: italic; }
+
+  /* ---------- three cozy panels ---------- */
+  .panels { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 22px 0 8px; }
+  @media (min-width: 560px){ .panels { grid-template-columns: 1fr 1fr 1fr; } }
+  .panel { border-radius: 18px; padding: 16px 16px 18px; position: relative; box-shadow: var(--shadow); border: 1.5px solid rgba(74,64,49,.08); min-height: 132px; }
+  .panel .ph { font-family: 'Baloo 2',cursive; font-weight: 700; font-size: 15px; letter-spacing: .04em; text-transform: uppercase; display: flex; align-items: center; gap: 7px; margin-bottom: 10px; }
+  .panel .big { font-family: 'Baloo 2',cursive; font-weight: 700; font-size: 30px; line-height: 1; }
+  .panel .small { font-size: 12.5px; margin-top: 6px; line-height: 1.45; }
+  .panel .pbar { height: 9px; border-radius: 100px; background: rgba(255,255,255,.55); overflow: hidden; margin-top: 12px; border: 1px solid rgba(74,64,49,.08); }
+  .panel .pbar i { display:block; height: 100%; border-radius: 100px; }
+  .panel .corner { position: absolute; right: 8px; bottom: 6px; opacity: .9; }
+  .panel.sage { background: var(--sage); color: var(--sage-ink); }
+  .panel.sage .small { color: #5f7548; }
+  .panel.blue { background: var(--blue-soft); color: var(--blue-ink); }
+  .panel.blue .small { color: #527f95; }
+  .panel.rose { background: var(--rose); color: var(--rose-ink); }
+  .panel.rose .small { color: #a86a78; }
+  .panel .editgoal { position: absolute; right: 12px; top: 14px; background: rgba(255,255,255,.5); border: none; border-radius: 8px; font-size: 11px; padding: 3px 8px; cursor: pointer; color: inherit; font-weight: 700; font-family: 'Nunito',sans-serif; }
+
+  .fab { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); z-index: 50; background: var(--terra); color: #fff; border: none; border-radius: 100px; padding: 17px 32px; font-family: 'Baloo 2',cursive; font-size: 17px; font-weight: 700; cursor: pointer; box-shadow: 0 5px 0 #b06a3e, 0 10px 24px rgba(217,138,82,.4); display: flex; align-items: center; gap: 8px; }
+  .fab:active { transform: translateX(-50%) translateY(3px); box-shadow: 0 2px 0 #b06a3e, 0 6px 16px rgba(217,138,82,.4); }
+
+  .overlay { position: fixed; inset: 0; background: rgba(74,64,49,.42); backdrop-filter: blur(3px); z-index: 100; display: none; align-items: flex-end; justify-content: center; }
+  .overlay.on { display: flex; }
+  .sheet { background: var(--card); width: 100%; max-width: 720px; border-radius: 26px 26px 0 0; padding: 20px 18px calc(20px + env(safe-area-inset-bottom)); animation: up .25s ease; max-height: 92vh; overflow-y: auto; }
+  @keyframes up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .sheet h3 { font-size: 21px; margin-bottom: 16px; color: var(--grass-deep); }
+  .sheet .desc { font-size: 13.5px; color: var(--ink-soft); margin: -8px 0 16px; line-height: 1.45; }
+  .field { margin-bottom: 13px; }
+  .field label { display: block; font-size: 12.5px; color: var(--ink-soft); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .04em; font-weight: 700; }
+  .field input, .field select { width: 100%; padding: 14px; border: 1.5px solid var(--line); border-radius: 14px; background: var(--bg); font-family: 'Nunito',sans-serif; font-size: 17px; color: var(--ink); -webkit-appearance: none; }
+  .field input:focus, .field select:focus { outline: 2px solid var(--grass); border-color: var(--grass); }
+  .seg { display: flex; gap: 8px; }
+  .seg button { flex: 1; padding: 13px 6px; border: 1.5px solid var(--line); background: var(--bg); border-radius: 13px; font-size: 14px; cursor: pointer; color: var(--ink-soft); font-weight: 600; }
+  .seg button.act { background: var(--grass-deep); color: #fff; border-color: var(--grass-deep); }
+  .sheet-btns { display: flex; gap: 10px; margin-top: 10px; }
+  .btn-primary { flex: 2; background: var(--terra); color: #fff; border: none; border-radius: 14px; padding: 16px; font-family: 'Baloo 2',cursive; font-size: 16px; font-weight: 700; cursor: pointer; }
+  .btn-ghost { flex: 1; background: var(--bg); color: var(--ink-soft); border: 1.5px solid var(--line); border-radius: 14px; padding: 16px; font-size: 16px; cursor: pointer; font-weight: 600; }
+  .btn-danger { background: none; border: none; color: var(--accent); font-size: 14px; cursor: pointer; padding: 12px; width: 100%; margin-top: 4px; text-decoration: underline; font-weight: 600; }
+  .amount-big { font-size: 26px !important; font-family: 'Baloo 2',cursive !important; font-weight: 700; text-align: center; }
+  .menu-list button { width: 100%; text-align: left; background: var(--bg); border: 1.5px solid var(--line); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; font-size: 15.5px; color: var(--ink); cursor: pointer; display: flex; align-items: center; gap: 12px; font-weight: 600; }
+  .menu-list button:active { background: var(--line); }
+  .menu-list button .mi { font-size: 18px; }
+  .menu-list button small { display:block; color: var(--ink-soft); font-size: 12.5px; margin-top: 2px; font-weight: 400; }
+
+  .cm-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1.5px dotted var(--line); }
+  .cm-row .dot { width: 13px; height: 13px; border-radius: 50%; flex-shrink: 0; }
+  .cm-row .cm-name { flex: 1; font-size: 15px; font-weight: 600; }
+  .cm-row .cm-name small { display:block; color: var(--ink-soft); font-size: 12px; font-weight: 400; }
+  .cm-row button { background: none; border: none; color: var(--ink-soft); font-size: 16px; cursor: pointer; padding: 4px 8px; }
+  .cm-row button.del { color: var(--accent); }
+  .cm-add { display: flex; gap: 8px; margin-top: 14px; }
+  .cm-add input { flex: 1; padding: 12px; border: 1.5px solid var(--line); border-radius: 12px; background: var(--bg); font-family:'Nunito',sans-serif; font-size: 15px; }
+  .cm-add button { background: var(--grass-deep); color: #fff; border: none; border-radius: 12px; padding: 0 18px; font-family:'Baloo 2',cursive; font-weight: 700; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<!-- LOCK SCREEN -->
+<div class="lock on" id="lockScreen">
+  <div class="lock-card">
+    <svg class="sprout" width="56" height="56" viewBox="0 0 56 56" fill="none">
+      <ellipse cx="28" cy="50" rx="16" ry="3" fill="#8aab63" opacity=".3"/>
+      <path d="M28 50 C28 38 28 30 28 24" stroke="#5f8541" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M28 30 C20 30 14 26 13 18 C22 18 28 22 28 30Z" fill="#8aab63"/>
+      <path d="M28 26 C36 26 43 22 44 13 C34 13 28 18 28 26Z" fill="#9fbd76"/>
+      <circle cx="28" cy="14" r="6" fill="#f0b94a"/>
+    </svg>
+    <h2 id="lockTitle">Set a passcode</h2>
+    <p id="lockDesc">Pick a passcode to encrypt your data on this device.</p>
+    <div class="lock-err" id="lockErr"></div>
+    <input type="password" id="lockPass" placeholder="Passcode" autocomplete="off">
+    <input type="password" id="lockPass2" placeholder="Confirm passcode" autocomplete="off" style="display:none">
+    <button class="lbtn" onclick="lockSubmit()">Continue</button>
+    <div class="lock-warn" id="lockWarn">🌱 There's no password reset. Forget this passcode and your saved data can't be recovered — that's what keeps it private. Export a backup regularly.</div>
+    <div class="lock-import" id="lockImport">Have an encrypted backup file? <button onclick="document.getElementById('importFile').click()">Import it</button></div>
+  </div>
+</div>
+<input type="file" id="importFile" accept=".pbk,application/json" style="display:none" onchange="importBackup(event)">
+
+<!-- SKY BANNER -->
+<div class="skybar">
+  <svg viewBox="0 0 720 92" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="640" cy="30" r="20" fill="#f7d36b"/>
+    <circle cx="640" cy="30" r="28" fill="#f7d36b" opacity=".25"/>
+    <g fill="#fdfaf0">
+      <ellipse cx="120" cy="34" rx="34" ry="16"/><ellipse cx="150" cy="30" rx="26" ry="15"/><ellipse cx="92" cy="32" rx="22" ry="13"/>
+      <ellipse cx="430" cy="22" rx="28" ry="13"/><ellipse cx="458" cy="20" rx="20" ry="11"/>
+    </g>
+    <g fill="#7fa85a"><ellipse cx="40" cy="96" rx="120" ry="40"/><ellipse cx="300" cy="100" rx="160" ry="44"/><ellipse cx="620" cy="98" rx="150" ry="42"/></g>
+    <g fill="#8db968"><ellipse cx="180" cy="104" rx="140" ry="38"/><ellipse cx="520" cy="104" rx="150" ry="38"/></g>
+    <g stroke="#fdfaf0" stroke-width="2" fill="none" opacity=".8">
+      <path d="M250 26 q6 -6 12 0 q6 -6 12 0"/><path d="M540 40 q6 -6 12 0 q6 -6 12 0"/>
+    </g>
+  </svg>
+</div>
+
+<header>
+  <div class="brand">🌿 Pocket<span>book</span></div>
+  <div class="hdr-right">
+    <div class="month-pill" id="monthPill">—</div>
+    <button class="icon-btn" onclick="openMenu()" title="Menu">⋯</button>
+  </div>
+</header>
+
+<div class="period">
+  <button id="pWeek" onclick="setPeriod('week')">This week</button>
+  <button id="pMonth" class="act" onclick="setPeriod('month')">This month</button>
+</div>
+
+<div class="hero">
+  <svg class="hills" viewBox="0 0 720 54" preserveAspectRatio="none"><path d="M0 54 L0 34 Q120 14 260 30 Q400 46 520 26 Q620 10 720 28 L720 54Z" fill="#cfe0c4"/></svg>
+  <div class="hero-label" id="heroLabel">Left to spend this month</div>
+  <div class="hero-big" id="heroLeft">$0</div>
+  <div class="hero-sub" id="heroSub">Set your income and budgets to begin</div>
+  <div class="hero-row">
+    <div class="mini"><div class="k">Income</div><div class="v income" id="miniIncome">$0</div></div>
+    <div class="mini"><div class="k">Spent</div><div class="v spent" id="miniSpent">$0</div></div>
+    <div class="mini"><div class="k" id="miniBudgetK">Budget</div><div class="v" id="miniBudget">$0</div></div>
+  </div>
+</div>
+
+<div class="mom" id="momLine" style="display:none"></div>
+
+<div class="acct-grid">
+  <div class="acct debit">
+    <svg class="leaf" width="46" height="46" viewBox="0 0 46 46"><path d="M40 6 C20 8 8 22 8 40 C26 40 40 26 40 6Z" fill="#fff"/></svg>
+    <div class="tag">Account</div><h3>Debit</h3>
+    <div class="amt"><small>$</small><span id="debitAmt">0</span></div>
+    <div class="acts"><button onclick="addPaycheck()">+ Paycheck</button><button onclick="setDebit()">Set</button></div>
+    <div class="warn" id="debitWarn"></div>
+  </div>
+  <div class="acct cash">
+    <svg class="leaf" width="46" height="46" viewBox="0 0 46 46"><path d="M40 6 C20 8 8 22 8 40 C26 40 40 26 40 6Z" fill="#fff"/></svg>
+    <div class="tag">Cash on hand</div><h3>Wallet</h3>
+    <div class="amt"><small>$</small><span id="walletAmt">0</span></div>
+    <div class="acts"><button onclick="withdrawCash()">Withdraw</button><button onclick="addCashToWallet()">+ Cash</button><button onclick="setWallet()">Set</button></div>
+    <div class="warn" id="walletWarn"></div>
+  </div>
+</div>
+
+<div class="credit">
+  <div class="cc-ic">💳</div>
+  <div class="cc-mid"><div class="t1">Credit card balance</div><div class="t2" id="ccSub">Card spending builds up here</div></div>
+  <div class="cc-amt" id="ccAmt">$0</div>
+  <button class="cc-pay" id="ccPay" onclick="payCard()">Pay off</button>
+</div>
+
+<div class="sec-head"><h2 id="chartTitle">🍃 Where it went</h2></div>
+<div class="chart-card"><div id="chartContent"></div></div>
+
+<div class="sec-head"><h2>🧺 Budgets</h2><button class="edit" onclick="openCatManager()">Categories</button></div>
+<div id="cats" class="cats-grid"></div>
+
+<!-- THREE COZY PANELS -->
+<div class="panels">
+  <div class="panel sage">
+    <button class="editgoal" onclick="setSavingsGoal()">edit</button>
+    <div class="ph">🌸 Savings goal</div>
+    <div class="big" id="panelSaveAmt">$0</div>
+    <div class="small" id="panelSaveSub">Set a goal to start saving</div>
+    <div class="pbar"><i id="panelSaveBar" style="width:0%;background:#5f8541"></i></div>
+    <svg class="corner" width="34" height="34" viewBox="0 0 34 34"><circle cx="17" cy="24" r="8" fill="#5f8541" opacity=".25"/><path d="M17 24 V12" stroke="#5f8541" stroke-width="2.5" stroke-linecap="round"/><path d="M17 16 C12 16 9 13 9 9 C14 9 17 12 17 16Z" fill="#5f8541" opacity=".4"/></svg>
+  </div>
+  <div class="panel blue">
+    <div class="ph">💧 Spent this week</div>
+    <div class="big" id="panelWeekAmt">$0</div>
+    <div class="small" id="panelWeekSub">across all categories</div>
+    <svg class="corner" width="34" height="34" viewBox="0 0 34 34"><ellipse cx="14" cy="16" rx="9" ry="6" fill="#4d86a4" opacity=".25"/><ellipse cx="22" cy="14" rx="7" ry="5" fill="#4d86a4" opacity=".25"/></svg>
+  </div>
+  <div class="panel rose">
+    <div class="ph">🌼 Income</div>
+    <div class="big" id="panelIncAmt">$0</div>
+    <div class="small" id="panelIncSub">this month so far</div>
+    <svg class="corner" width="34" height="34" viewBox="0 0 34 34"><g fill="#b9697a" opacity=".3"><circle cx="17" cy="12" r="4"/><circle cx="12" cy="17" r="4"/><circle cx="22" cy="17" r="4"/><circle cx="17" cy="22" r="4"/></g><circle cx="17" cy="17" r="3" fill="#f0b94a"/></svg>
+  </div>
+</div>
+
+<div class="sec-head"><h2 id="activityTitle">📖 Recent activity</h2><button class="edit" onclick="addPaycheck()">+ Income</button></div>
+<div id="txList"></div>
+
+<button class="fab" onclick="openAdd()">＋ Add expense</button>
+
+<!-- ADD / EDIT EXPENSE -->
+<div class="overlay" id="addOverlay">
+  <div class="sheet">
+    <h3 id="addTitle">Add expense</h3>
+    <div class="field"><label>Amount</label><input type="number" inputmode="decimal" id="inAmt" class="amount-big" placeholder="0.00"></div>
+    <div class="field"><label>What was it?</label><input type="text" id="inNote" placeholder="e.g. lunch with friends"></div>
+    <div class="field"><label>Got paid back? (Venmo/Zelle) — optional</label><input type="number" inputmode="decimal" id="inReimb" placeholder="0.00"></div>
+    <div class="field"><label>Category</label><select id="inCat"></select></div>
+    <div class="field"><label>Paid with</label>
+      <div class="seg" id="paySeg">
+        <button class="act" data-pay="cash" onclick="pickPay(this)">💵 Cash</button>
+        <button data-pay="debit" onclick="pickPay(this)">🏦 Debit</button>
+        <button data-pay="card" onclick="pickPay(this)">💳 Credit</button>
+      </div>
+    </div>
+    <div class="sheet-btns"><button class="btn-ghost" onclick="closeAdd()">Cancel</button><button class="btn-primary" id="addSaveBtn" onclick="saveExpense()">Add</button></div>
+    <button class="btn-danger" id="addDeleteBtn" onclick="deleteEditing()" style="display:none">Delete this transaction</button>
+  </div>
+</div>
+
+<!-- CATEGORY MANAGER -->
+<div class="overlay" id="catOverlay">
+  <div class="sheet">
+    <h3>Categories</h3>
+    <div class="desc">Tap a name to rename, $ to set its limit, or ✕ to remove. Removed categories' past spending shows as "Other".</div>
+    <div id="cmList"></div>
+    <div class="cm-add"><input type="text" id="cmNew" placeholder="New category name"><button onclick="addCategory()">Add</button></div>
+    <div class="sheet-btns"><button class="btn-ghost" style="flex:1" onclick="closeCatManager()">Done</button></div>
+  </div>
+</div>
+
+<!-- MENU -->
+<div class="overlay" id="menuOverlay">
+  <div class="sheet">
+    <h3>Settings & backup</h3>
+    <div class="desc">Your data is encrypted on this device with your passcode. Export a backup to move it to another device.</div>
+    <div class="menu-list">
+      <button onclick="exportBackup()"><span class="mi">⬇️</span><span>Export encrypted backup<small>Downloads a .pbk file for another device</small></span></button>
+      <button onclick="document.getElementById('importFile').click()"><span class="mi">⬆️</span><span>Import a backup<small>Replaces current data with a backup file</small></span></button>
+      <button onclick="changePass()"><span class="mi">🔑</span><span>Change passcode<small>Re-encrypts your data with a new passcode</small></span></button>
+      <button onclick="lockNow()"><span class="mi">🔒</span><span>Lock now<small>Requires passcode to reopen</small></span></button>
+      <button onclick="resetEverything()" style="border-color:#e8c5b8"><span class="mi">🧹</span><span style="color:var(--accent)">Reset everything<small>Wipes all data and balances back to zero</small></span></button>
+    </div>
+    <div class="sheet-btns"><button class="btn-ghost" style="flex:1" onclick="closeMenu()">Close</button></div>
+  </div>
+</div>
+
+<script>
+const enc = new TextEncoder(); const dec = new TextDecoder();
+function buf2b64(b){ return btoa(String.fromCharCode(...new Uint8Array(b))); }
+function b642buf(s){ return Uint8Array.from(atob(s), c=>c.charCodeAt(0)); }
+async function deriveKey(pc, salt){
+  const bk = await crypto.subtle.importKey('raw', enc.encode(pc), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2', salt, iterations:150000, hash:'SHA-256'}, bk, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']);
+}
+async function encryptData(obj, pc){
+  const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+  const key = await deriveKey(pc, salt);
+  const ct = await crypto.subtle.encrypt({name:'AES-GCM', iv}, key, enc.encode(JSON.stringify(obj)));
+  return { v:1, salt:buf2b64(salt), iv:buf2b64(iv), ct:buf2b64(ct) };
+}
+async function decryptData(p, pc){
+  const key = await deriveKey(pc, b642buf(p.salt));
+  const pt = await crypto.subtle.decrypt({name:'AES-GCM', iv:b642buf(p.iv)}, key, b642buf(p.ct));
+  return JSON.parse(dec.decode(pt));
+}
+
+const DEFAULT_CATS = [
+  { id:'food',      name:'Food & groceries',    color:'#8aab63', icon:'🛒', limit:400 },
+  { id:'eatfun',    name:'Eating out & fun',     color:'#d57b56', icon:'🍜', limit:475 },
+  { id:'utilities', name:'Utilities / necessities', color:'#b9697a', icon:'🧾', limit:200 },
+  { id:'transit',   name:'Transit',              color:'#5b9cba', icon:'🚌', limit:150 },
+  { id:'savings',   name:'Savings',              color:'#f0b94a', icon:'🐷', limit:1300 },
+];
+const PALETTE = ['#8aab63','#d57b56','#b9697a','#5b9cba','#f0b94a','#6a9a8a','#a07ab0','#7a8a4a','#c98a5a'];
+const ICONS = ['🌷','🎯','📦','🎁','📱','🏠','💊','✈️','📚','🎵','🌻','🐾'];
+
+const STORE_KEY = 'pocketbook_enc_v2';
+let state = null, passcode = null, period = 'month';
+
+function freshState(){
+  return { income:0, debit:0, wallet:0, card:0, weekly:675,
+    cats:DEFAULT_CATS.map(c=>({...c})), tx:[], month:monthKey(), lastMonthSpent:0, savingsGoal:0 };
+}
+function monthKey(d){ return (d||new Date()).toISOString().slice(0,7); }
+function monthLabel(){ return new Date().toLocaleDateString('en-US',{month:'long',year:'numeric'}); }
+function startOfWeek(){ const d=new Date(); const day=d.getDay(); const diff=(day===0?6:day-1); d.setHours(0,0,0,0); d.setDate(d.getDate()-diff); return d.getTime(); }
+function inCurrentWeek(ts){ return ts >= startOfWeek(); }
+function inCurrentMonth(ts){ return monthKey(new Date(ts))===monthKey(); }
+function r2(n){ return Math.round(n*100)/100; }
+function fmt(n){ return n.toLocaleString('en-US',{minimumFractionDigits: n%1?2:0, maximumFractionDigits:2}); }
+function catMeta(id){ return (state.cats.find(c=>c.id===id)) || {id, name:'Other', color:'#9a8f7d', icon:'•', limit:0}; }
+function netAmt(t){ return r2((t.amt||0) - (t.reimb||0)); }
+
+async function save(){
+  if(!state || !passcode) return;
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(await encryptData(state, passcode))); }
+  catch(e){ console.error('save failed', e); }
+}
+
+function migrate(data){
+  if(!data.cats) data.cats = DEFAULT_CATS.map(c=>({...c}));
+  const hasEatfun = data.cats.some(c=>c.id==='eatfun');
+  if(!hasEatfun){
+    data.cats = data.cats.filter(c=>c.id!=='eatout' && c.id!=='fun');
+    if(!data.cats.some(c=>c.id==='eatfun')) data.cats.splice(1,0,{id:'eatfun',name:'Eating out & fun',color:'#d57b56',icon:'🍜',limit:475});
+    if(!data.cats.some(c=>c.id==='utilities')) data.cats.splice(2,0,{id:'utilities',name:'Utilities / necessities',color:'#b9697a',icon:'🧾',limit:200});
+  }
+  (data.tx||[]).forEach(t=>{ if(t.cat==='eatout'||t.cat==='fun') t.cat='eatfun'; });
+  if(data.lastMonthSpent===undefined) data.lastMonthSpent = 0;
+  if(data.savingsGoal===undefined) data.savingsGoal = 0;
+  return data;
+}
+
+let lockMode='new';
+function initLock(){
+  const has = localStorage.getItem(STORE_KEY);
+  lockMode = has ? 'unlock' : 'new';
+  const t=document.getElementById('lockTitle'), d=document.getElementById('lockDesc'), p2=document.getElementById('lockPass2'), w=document.getElementById('lockWarn');
+  if(lockMode==='unlock'){ t.textContent='Welcome back'; d.textContent='Enter your passcode to unlock your data.'; p2.style.display='none'; w.style.display='none'; }
+  else { t.textContent='Set a passcode'; d.textContent='Pick a passcode to encrypt your data on this device.'; p2.style.display='block'; w.style.display='block'; }
+  document.getElementById('lockScreen').classList.add('on');
+}
+async function lockSubmit(){
+  const errEl=document.getElementById('lockErr'); errEl.textContent='';
+  const p1=document.getElementById('lockPass').value;
+  if(!p1){ errEl.textContent='Enter a passcode.'; return; }
+  if(lockMode==='new'){
+    const p2=document.getElementById('lockPass2').value;
+    if(p1.length<4){ errEl.textContent='Use at least 4 characters.'; return; }
+    if(p1!==p2){ errEl.textContent="Passcodes don't match."; return; }
+    passcode=p1; state=freshState(); await save(); finishUnlock();
+  } else {
+    try { const data=await decryptData(JSON.parse(localStorage.getItem(STORE_KEY)), p1); passcode=p1; state=migrate(data); finishUnlock(); }
+    catch(e){ errEl.textContent='Wrong passcode. Try again.'; document.getElementById('lockPass').value=''; }
+  }
+}
+function finishUnlock(){
+  document.getElementById('lockScreen').classList.remove('on');
+  document.getElementById('lockPass').value=''; document.getElementById('lockPass2').value='';
+  if(state.month!==monthKey()){
+    state.lastMonthSpent = state.tx.filter(t=>t.type==='exp').reduce((s,t)=>s+netAmt(t),0);
+    state.tx=[]; state.income=0; state.month=monthKey();
+  }
+  render();
+}
+function lockNow(){ passcode=null; state=null; closeMenu(); initLock(); }
+async function resetEverything(){
+  if(!confirm('Reset EVERYTHING? This permanently wipes all transactions and sets every balance to zero. Your categories stay. This cannot be undone.')) return;
+  if(!confirm('Are you absolutely sure? Consider exporting a backup first if you might want this data later.')) return;
+  state = freshState();
+  await save();
+  closeMenu();
+  render();
+  alert('All set \u2014 everything is back to zero. Set your balances with the Set buttons when you\u2019re ready.');
+}
+async function changePass(){
+  const np=prompt('New passcode (at least 4 characters):'); if(np===null) return;
+  if(np.length<4){ alert('Too short.'); return; }
+  if(prompt('Confirm new passcode:')!==np){ alert("Passcodes don't match."); return; }
+  passcode=np; await save(); alert('Passcode changed.'); closeMenu();
+}
+
+async function exportBackup(){
+  if(!state||!passcode) return;
+  const payload=await encryptData(state, passcode);
+  const blob=new Blob([JSON.stringify(payload)],{type:'application/json'});
+  const url=URL.createObjectURL(blob); const a=document.createElement('a');
+  a.href=url; a.download=`pocketbook-backup-${new Date().toISOString().slice(0,10)}.pbk`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+function importBackup(ev){
+  const file=ev.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=async()=>{
+    let payload; try{ payload=JSON.parse(reader.result); }catch(e){ alert('That file isn\u2019t a valid backup.'); return; }
+    const pc=prompt('Enter the passcode this backup was saved with:'); if(pc===null) return;
+    try{
+      const data=await decryptData(payload, pc); state=migrate(data); passcode=pc; await save();
+      document.getElementById('lockScreen').classList.remove('on'); closeMenu();
+      if(state.month!==monthKey()){ state.lastMonthSpent=state.tx.filter(t=>t.type==='exp').reduce((s,t)=>s+netAmt(t),0); state.tx=[]; state.income=0; state.month=monthKey(); }
+      render(); alert('Backup restored.');
+    }catch(e){ alert('Wrong passcode for this backup, or the file is corrupted.'); }
+  };
+  reader.readAsText(file); ev.target.value='';
+}
+
+function setPeriod(p){
+  period=p;
+  document.getElementById('pWeek').classList.toggle('act', p==='week');
+  document.getElementById('pMonth').classList.toggle('act', p==='month');
+  render();
+}
+function periodFilter(t){ return period==='week' ? inCurrentWeek(t.ts) : inCurrentMonth(t.ts); }
+
+let payMethod='cash', editingId=null;
+function pickPay(btn){ payMethod=btn.dataset.pay; document.querySelectorAll('#paySeg button').forEach(b=>b.classList.remove('act')); btn.classList.add('act'); }
+function fillCatSelect(sel){ sel.innerHTML = state.cats.map(c=>`<option value="${c.id}">${c.icon} ${c.name}</option>`).join(''); }
+function openAdd(){
+  editingId=null;
+  document.getElementById('addTitle').textContent='Add expense';
+  document.getElementById('addSaveBtn').textContent='Add';
+  document.getElementById('addDeleteBtn').style.display='none';
+  document.getElementById('inAmt').value=''; document.getElementById('inNote').value=''; document.getElementById('inReimb').value='';
+  fillCatSelect(document.getElementById('inCat'));
+  payMethod='cash'; document.querySelectorAll('#paySeg button').forEach(b=>b.classList.toggle('act', b.dataset.pay==='cash'));
+  document.getElementById('addOverlay').classList.add('on');
+  setTimeout(()=>document.getElementById('inAmt').focus(),100);
+}
+function openEdit(id){
+  const t=state.tx.find(x=>x.id===id); if(!t || t.type!=='exp') return;
+  editingId=id;
+  document.getElementById('addTitle').textContent='Edit expense';
+  document.getElementById('addSaveBtn').textContent='Save';
+  document.getElementById('addDeleteBtn').style.display='block';
+  document.getElementById('inAmt').value=t.amt; document.getElementById('inNote').value=t.note||''; document.getElementById('inReimb').value=t.reimb||'';
+  fillCatSelect(document.getElementById('inCat')); document.getElementById('inCat').value=t.cat;
+  payMethod=t.pay; document.querySelectorAll('#paySeg button').forEach(b=>b.classList.toggle('act', b.dataset.pay===t.pay));
+  document.getElementById('addOverlay').classList.add('on');
+}
+function closeAdd(){ document.getElementById('addOverlay').classList.remove('on'); }
+function applyAccount(pay, amt, sign){
+  if(pay==='cash') state.wallet = r2(state.wallet - sign*amt);
+  else if(pay==='debit') state.debit = r2(state.debit - sign*amt);
+  else if(pay==='card') state.card = r2(state.card + sign*amt);
+}
+function applyReimb(reimb, sign){
+  // Payback lands in debit, so it credits debit. sign +1 = apply, -1 = reverse.
+  if(reimb>0) state.debit = r2(state.debit + sign*reimb);
+}
+async function saveExpense(){
+  const amt=parseFloat(document.getElementById('inAmt').value);
+  if(!amt||amt<=0){ alert('Enter an amount'); return; }
+  const cat=document.getElementById('inCat').value;
+  const note=document.getElementById('inNote').value.trim();
+  let reimb=parseFloat(document.getElementById('inReimb').value)||0;
+  if(reimb<0) reimb=0;
+  if(reimb>amt){ alert("Paid-back amount can't be more than the total."); return; }
+  if(editingId){
+    const t=state.tx.find(x=>x.id===editingId);
+    applyAccount(t.pay, t.amt, -1);
+    applyReimb(t.reimb||0, -1);
+    t.amt=amt; t.cat=cat; t.note=note; t.pay=payMethod; t.reimb=reimb;
+    applyAccount(payMethod, amt, +1);
+    applyReimb(reimb, +1);
+  } else {
+    state.tx.unshift({ id:Date.now(), amt, cat, pay:payMethod, note, reimb, ts:Date.now(), type:'exp' });
+    applyAccount(payMethod, amt, +1);
+    applyReimb(reimb, +1);
+  }
+  await save(); closeAdd(); render();
+}
+async function deleteEditing(){
+  if(!editingId) return;
+  const t=state.tx.find(x=>x.id===editingId);
+  if(t){ applyAccount(t.pay, t.amt, -1); applyReimb(t.reimb||0, -1); state.tx=state.tx.filter(x=>x.id!==editingId); }
+  await save(); closeAdd(); render();
+}
+
+async function addPaycheck(){
+  const v=prompt('Paycheck amount to deposit into debit ($):', state.weekly); if(v===null) return;
+  const n=parseFloat(v); if(isNaN(n)){ alert('Enter a number'); return; }
+  state.debit=r2(state.debit+n); state.income=r2(state.income+n);
+  state.tx.unshift({ id:Date.now(), amt:n, type:'income', ts:Date.now() });
+  await save(); render();
+}
+async function setDebit(){ const v=prompt('Set debit balance ($):', state.debit); if(v===null) return; const n=parseFloat(v); if(isNaN(n)){alert('Enter a number');return;} state.debit=n; await save(); render(); }
+async function withdrawCash(){ const v=prompt('Withdraw how much from debit into your wallet? ($)'); if(v===null) return; const n=parseFloat(v); if(isNaN(n)){alert('Enter a number');return;} state.wallet=r2(state.wallet+n); state.debit=r2(state.debit-n); await save(); render(); }
+async function addCashToWallet(){ const v=prompt('Add cash to wallet (gift, tip, etc. \u2014 does NOT touch debit) ($)'); if(v===null) return; const n=parseFloat(v); if(isNaN(n)){alert('Enter a number');return;} state.wallet=r2(state.wallet+n); await save(); render(); }
+async function setWallet(){ const v=prompt('Set cash on hand ($):', state.wallet); if(v===null) return; const n=parseFloat(v); if(isNaN(n)){alert('Enter a number');return;} state.wallet=n; await save(); render(); }
+async function payCard(){
+  if(state.card<=0) return;
+  const v=prompt('Pay how much of the card from debit? ($)', state.card); if(v===null) return;
+  const n=parseFloat(v); if(isNaN(n)||n<=0){alert('Enter a number');return;}
+  const pay=Math.min(n,state.card); state.card=r2(state.card-pay); state.debit=r2(state.debit-pay);
+  await save(); render();
+}
+async function setSavingsGoal(){
+  const v=prompt('Savings goal for this summer ($):', state.savingsGoal||''); if(v===null) return;
+  const n=parseFloat(v); if(isNaN(n)){ alert('Enter a number'); return; }
+  state.savingsGoal=n; await save(); render();
+}
+
+function openCatManager(){ renderCatManager(); document.getElementById('catOverlay').classList.add('on'); }
+function closeCatManager(){ document.getElementById('catOverlay').classList.remove('on'); }
+function renderCatManager(){
+  const el=document.getElementById('cmList');
+  el.innerHTML = state.cats.map(c=>`
+    <div class="cm-row"><span class="dot" style="background:${c.color}"></span>
+      <div class="cm-name" onclick="renameCategory('${c.id}')">${c.icon} ${c.name}<small>Limit $${fmt(c.limit)} \u00b7 tap to rename</small></div>
+      <button onclick="editCatLimit('${c.id}')">$</button><button class="del" onclick="removeCategory('${c.id}')">\u2715</button>
+    </div>`).join('');
+}
+async function renameCategory(id){ const c=state.cats.find(x=>x.id===id); if(!c) return; const v=prompt('Rename category:', c.name); if(v===null||!v.trim()) return; c.name=v.trim(); await save(); renderCatManager(); render(); }
+async function editCatLimit(id){ const c=state.cats.find(x=>x.id===id); if(!c) return; const v=prompt('Monthly limit for '+c.name+' ($):', c.limit); if(v===null||isNaN(parseFloat(v))) return; c.limit=parseFloat(v); await save(); renderCatManager(); render(); }
+async function removeCategory(id){
+  if(state.cats.length<=1){ alert('Keep at least one category.'); return; }
+  const c=state.cats.find(x=>x.id===id);
+  if(!confirm(`Remove "${c.name}"? Its past spending will show as "Other".`)) return;
+  state.cats=state.cats.filter(x=>x.id!==id); await save(); renderCatManager(); render();
+}
+async function addCategory(){
+  const inp=document.getElementById('cmNew'); const name=inp.value.trim();
+  if(!name){ inp.focus(); return; }
+  state.cats.push({id:'c'+Date.now(), name, color:PALETTE[state.cats.length % PALETTE.length], icon:ICONS[state.cats.length % ICONS.length], limit:100});
+  inp.value=''; await save(); renderCatManager(); render();
+}
+
+function openMenu(){ document.getElementById('menuOverlay').classList.add('on'); }
+function closeMenu(){ document.getElementById('menuOverlay').classList.remove('on'); }
+
+function renderDonut(spentByCat, total){
+  const wrap=document.getElementById('chartContent');
+  if(total<=0){ wrap.innerHTML='<div class="chart-empty">No spending yet this '+period+'. Log an expense to see the breakdown.</div>'; return; }
+  const entries=state.cats.map(c=>({c, v:spentByCat[c.id]||0})).filter(e=>e.v>0).sort((a,b)=>b.v-a.v);
+  const other=Object.keys(spentByCat).filter(k=>!state.cats.some(c=>c.id===k)).reduce((s,k)=>s+spentByCat[k],0);
+  if(other>0) entries.push({c:{name:'Other',color:'#9a8f7d',icon:'•'}, v:other});
+  const lbl = period==='week'?'this week':'this month';
+
+  // Single category: a ring is just a circle, so show a cleaner pill instead of an awkward thin loop
+  if(entries.length===1){
+    const e=entries[0];
+    wrap.innerHTML=`<div class="single-cat">
+      <div class="sc-chip" style="background:${e.c.color}1f;color:${e.c.color}">${e.c.icon}</div>
+      <div class="sc-mid">
+        <div class="sc-amt">$${fmt(total)}</div>
+        <div class="sc-sub">all on <b style="color:${e.c.color}">${e.c.name}</b> ${lbl}</div>
+      </div>
+    </div>`;
+    return;
+  }
+
+  const R=54, C=2*Math.PI*R; let off=0;
+  const segs=entries.map(e=>{
+    const len=(e.v/total)*C;
+    const gap=2; // tiny gap between segments for definition
+    const seg=`<circle r="${R}" cx="65" cy="65" fill="none" stroke="${e.c.color}" stroke-width="18" stroke-linecap="round" stroke-dasharray="${Math.max(0,len-gap)} ${C-Math.max(0,len-gap)}" stroke-dashoffset="${-off}" transform="rotate(-90 65 65)"/>`;
+    off+=len; return seg;
+  }).join('');
+  const legend=entries.map(e=>`<div class="lg"><span class="sw" style="background:${e.c.color}"></span><span class="nm">${e.c.icon} ${e.c.name}</span><span class="vl">$${fmt(e.v)}</span></div>`).join('');
+  wrap.innerHTML=`<div class="chart-wrap"><div class="donut"><svg viewBox="0 0 130 130" width="130" height="130">${segs}</svg><div class="center"><div class="ct-amt">$${fmt(total)}</div><div class="ct-lbl">${lbl}</div></div></div><div class="legend">${legend}</div></div>`;
+}
+
+function render(){
+  if(!state) return;
+  document.getElementById('monthPill').textContent=monthLabel();
+  const isWeek = period==='week';
+  const txExp = state.tx.filter(t=>t.type==='exp' && periodFilter(t));
+  const spentByCat={}; let totalSpent=0;
+  txExp.forEach(t=>{ const n=netAmt(t); spentByCat[t.cat]=(spentByCat[t.cat]||0)+n; totalSpent+=n; });
+  const incomePeriod = state.tx.filter(t=>t.type==='income' && periodFilter(t)).reduce((s,t)=>s+t.amt,0);
+  const incomeShown = isWeek ? incomePeriod : state.income;
+  const totalBudgetMonthly = state.cats.reduce((s,c)=>s+c.limit,0);
+  const budgetShown = isWeek ? totalBudgetMonthly/(30/7) : totalBudgetMonthly;
+  const left = incomeShown - totalSpent;
+
+  document.getElementById('heroLabel').textContent = isWeek ? 'Left to spend this week' : 'Left to spend this month';
+  const heroLeft=document.getElementById('heroLeft');
+  heroLeft.textContent=(left<0?'-$':'$')+fmt(Math.abs(left)); heroLeft.classList.toggle('neg', left<0);
+  document.getElementById('heroSub').textContent = incomeShown>0 ? `of $${fmt(incomeShown)} income \u00b7 $${fmt(totalSpent)} spent` : (isWeek ? 'No income logged this week yet' : 'Add a paycheck to set this month\u2019s income');
+  document.getElementById('miniIncome').textContent='$'+fmt(incomeShown);
+  document.getElementById('miniSpent').textContent='$'+fmt(totalSpent);
+  document.getElementById('miniBudgetK').textContent = isWeek ? 'Budget/wk' : 'Budget';
+  document.getElementById('miniBudget').textContent='$'+fmt(Math.round(budgetShown));
+
+  const momEl=document.getElementById('momLine');
+  if(!isWeek && state.lastMonthSpent>0){
+    const diff=totalSpent-state.lastMonthSpent; const pct=Math.round(Math.abs(diff)/state.lastMonthSpent*100);
+    momEl.style.display='flex';
+    if(diff>0) momEl.innerHTML=`<span class="arrow up">\u2191</span> You\u2019ve spent <b style="color:var(--ink)">$${fmt(totalSpent)}</b> so far \u2014 ${pct}% more than last month ($${fmt(state.lastMonthSpent)}).`;
+    else if(diff<0) momEl.innerHTML=`<span class="arrow down">\u2193</span> You\u2019ve spent <b style="color:var(--ink)">$${fmt(totalSpent)}</b> so far \u2014 ${pct}% less than last month ($${fmt(state.lastMonthSpent)}).`;
+    else momEl.innerHTML=`Same spend as last month so far ($${fmt(totalSpent)}).`;
+  } else momEl.style.display='none';
+
+  document.getElementById('debitAmt').textContent=fmt(state.debit);
+  document.getElementById('walletAmt').textContent=fmt(state.wallet);
+  const dW=document.getElementById('debitWarn');
+  if(state.debit<0){ dW.style.display='block'; dW.textContent='\u26a0 Debit is negative.'; } else dW.style.display='none';
+  const wW=document.getElementById('walletWarn');
+  if(state.wallet<0){ wW.style.display='block'; wW.textContent='\u26a0 Wallet negative \u2014 maybe a missed withdrawal.'; } else wW.style.display='none';
+
+  const ccAmt=document.getElementById('ccAmt');
+  ccAmt.textContent='$'+fmt(state.card); ccAmt.classList.toggle('zero', state.card<=0);
+  document.getElementById('ccSub').textContent=state.card>0?'Owed \u2014 pay off to pull from debit':'Nothing owed right now';
+  document.getElementById('ccPay').disabled=state.card<=0;
+
+  document.getElementById('chartTitle').textContent = isWeek ? '🍃 Where it went this week' : '🍃 Where it went this month';
+  renderDonut(spentByCat, totalSpent);
+
+  const catsEl=document.getElementById('cats');
+  const now=new Date(); const dayOfMonth=now.getDate();
+  const daysInMonth=new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+  const monthProgress=dayOfMonth/daysInMonth;
+  catsEl.innerHTML=state.cats.map(c=>{
+    const sp=spentByCat[c.id]||0;
+    const lim = isWeek ? c.limit/(30/7) : c.limit;
+    const pct=lim>0?Math.min(100,(sp/lim)*100):0;
+    const over=sp>lim && lim>0; const barColor=over?'var(--accent)':c.color;
+    let pace='';
+    if(!isWeek && c.limit>0 && sp>0){ const expected=c.limit*monthProgress; if(sp>expected*1.15) pace=`<div class="pace behind">Ahead of pace \u2014 ${Math.round(monthProgress*100)}% through month, ${Math.round(sp/c.limit*100)}% of budget used</div>`; }
+    return `<div class="cat"><div class="cat-top"><div class="cat-name"><span class="dot" style="background:${c.color}"></span>${c.icon} ${c.name}</div><div class="cat-nums ${over?'over':''}"><b>$${fmt(sp)}</b> / $${fmt(Math.round(lim))}</div></div><div class="bar"><i style="width:${pct}%;background:${barColor}"></i></div>${pace}</div>`;
+  }).join('');
+
+  // three panels
+  const weekSpent = state.tx.filter(t=>t.type==='exp' && inCurrentWeek(t.ts)).reduce((s,t)=>s+netAmt(t),0);
+  const savedThisMonth = spentByCatAll('savings');
+  const goal = state.savingsGoal||0;
+  document.getElementById('panelSaveAmt').textContent = goal>0 ? '$'+fmt(savedThisMonth) : 'Set goal';
+  if(goal>0){
+    const gp=Math.min(100, savedThisMonth/goal*100);
+    document.getElementById('panelSaveSub').textContent = `of $${fmt(goal)} goal \u00b7 ${Math.round(gp)}%`;
+    document.getElementById('panelSaveBar').style.width = gp+'%';
+  } else {
+    document.getElementById('panelSaveSub').textContent = 'Tap edit to set a goal';
+    document.getElementById('panelSaveBar').style.width = '0%';
+  }
+  document.getElementById('panelWeekAmt').textContent = '$'+fmt(weekSpent);
+  document.getElementById('panelIncAmt').textContent = '$'+fmt(state.income);
+
+  document.getElementById('activityTitle').textContent = isWeek ? '📖 This week\u2019s activity' : '📖 Recent activity';
+  const txEl=document.getElementById('txList');
+  const list = state.tx.filter(t => t.type==='income' || periodFilter(t));
+  if(list.length===0){ txEl.innerHTML='<div class="empty">No transactions this '+period+' yet. Tap \u201cAdd expense\u201d to log one.</div>'; }
+  else {
+    txEl.innerHTML=list.slice(0,60).map(t=>{
+      if(t.type==='income'){ return `<div class="tx" style="cursor:default"><div class="tx-ic">\ud83d\udcb0</div><div class="tx-mid"><div class="t1">Paycheck</div><div class="t2">into debit \u00b7 ${new Date(t.ts).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div></div><div class="tx-amt in">+$${fmt(t.amt)}</div></div>`; }
+      const m=catMeta(t.cat); let chip='';
+      if(t.pay==='cash') chip='<span class="pay-chip pay-cash">cash</span>';
+      else if(t.pay==='debit') chip='<span class="pay-chip pay-debit">debit</span>';
+      else chip='<span class="pay-chip pay-card">credit</span>';
+      const hasReimb = (t.reimb||0) > 0;
+      const reimbChip = hasReimb ? ` <span class="pay-chip" style="background:var(--sage);color:var(--sage-ink)">−$${fmt(t.reimb)} back</span>` : '';
+      const amtHtml = hasReimb
+        ? `<div style="text-align:right"><div class="tx-amt">$${fmt(netAmt(t))}</div><div style="font-size:11px;color:var(--ink-soft);text-decoration:line-through">$${fmt(t.amt)}</div></div>`
+        : `<div class="tx-amt">$${fmt(t.amt)}</div>`;
+      return `<div class="tx" onclick="openEdit(${t.id})"><div class="tx-ic">${m.icon}</div><div class="tx-mid"><div class="t1">${t.note || m.name}</div><div class="t2">${m.name} \u00b7 ${new Date(t.ts).toLocaleDateString('en-US',{month:'short',day:'numeric'})} ${chip}${reimbChip}</div></div>${amtHtml}<span class="tx-chev">\u203a</span></div>`;
+    }).join('');
+  }
+}
+function spentByCatAll(catId){ return state.tx.filter(t=>t.type==='exp' && t.cat===catId && inCurrentMonth(t.ts)).reduce((s,t)=>s+netAmt(t),0); }
+
+document.getElementById('lockPass').addEventListener('keydown', e=>{ if(e.key==='Enter'){ if(lockMode==='unlock') lockSubmit(); else document.getElementById('lockPass2').focus(); }});
+document.getElementById('lockPass2').addEventListener('keydown', e=>{ if(e.key==='Enter') lockSubmit(); });
+document.getElementById('inAmt')?.addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('inNote').focus(); });
+['addOverlay','catOverlay','menuOverlay'].forEach(id=>{ document.getElementById(id).addEventListener('click', e=>{ if(e.target.id===id) document.getElementById(id).classList.remove('on'); }); });
+if(!('crypto' in window) || !crypto.subtle){ document.getElementById('lockDesc').textContent='Your browser doesn\u2019t support secure encryption here. Open this file directly on your device over https://.'; }
+initLock();
+</script>
+</body>
+</html>
