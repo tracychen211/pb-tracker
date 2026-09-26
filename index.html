@@ -46,11 +46,7 @@
   button { font-family: 'Nunito', sans-serif; }
 
   /* ---------- decorative sky banner ---------- */
-  /* header picture: a wide strip on its own cream, softly fading into the page */
-  .skybar { position: relative; margin: 0 -16px 0; aspect-ratio: 938 / 264; max-height: 230px; overflow: hidden;
-    background: #fffbe8 url('header.png') center bottom / contain no-repeat; padding-top: env(safe-area-inset-top); }
-  .skybar::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 16%;
-    background: linear-gradient(180deg, rgba(243,234,210,0) 0%, var(--bg) 100%); }
+
 
   /* Lock */
   .lock { position: fixed; inset: 0; background: var(--bg); z-index: 200; display: none; align-items: flex-start; justify-content: center; padding: 22px; overflow-y: auto;
@@ -310,7 +306,6 @@
   .panel .small b { font-weight: 700; }
 
   /* ---------- tabs ---------- */
-  body.no-sky header { padding-top: calc(18px + env(safe-area-inset-top)); }
   .tab > .sec-head:first-child { margin-top: 6px; }
   .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; display: flex; justify-content: center; pointer-events: none; }
   .tabbar-in { pointer-events: auto; width: 100%; max-width: 720px; background: var(--card); border: 1.5px solid var(--line); border-bottom: none; border-radius: 26px 26px 0 0; box-shadow: 0 -6px 22px rgba(74,64,49,.10); display: grid; grid-template-columns: repeat(5, 1fr); align-items: end; padding: 8px 6px calc(8px + env(safe-area-inset-bottom)); }
@@ -403,6 +398,29 @@
   .tod-row .lbl small { display: block; font-size: 11px; color: var(--ink-soft); }
   .tod-row .bar { flex: 1; }
   .tod-row .v { font-family: 'Baloo 2',cursive; font-weight: 700; width: 56px; text-align: right; flex-shrink: 0; }
+  /* ---------- wallpaper: cozy window picture behind everything, softened with a cream wash ---------- */
+  html { background: #e9c9cf; }
+  html body { background: transparent; background-image: none; }
+  body::before { content: ''; position: fixed; inset: 0; z-index: -2; background: #e9c9cf url('bg.jpg') center top / cover no-repeat; }
+  body::after { content: ''; position: fixed; inset: 0; z-index: -1; background: rgba(250,240,225,.38); }
+  header { padding-top: calc(22px + env(safe-area-inset-top)); }
+  .brand { text-shadow: 0 1px 0 rgba(255,250,240,.7); }
+  .monthnav .mn-label { background: rgba(253,248,234,.7); border-radius: 100px; padding: 5px 12px; }
+  .sec-head h2 { text-shadow: 0 0 10px rgba(253,248,234,.95), 0 0 3px rgba(253,248,234,.9); white-space: nowrap; }
+  /* frosted-glass cards */
+  .hero, .credit, .chart-card, .big-card, .cat, .when-card, .sum-card, .trend-card, #txList, #recentList, .otbar, .period,
+  .month-pill, .icon-btn, .mn-arrow, .sortbar button, .filterbar button:not(.act), .mini-seg, .backup-banner {
+    background: rgba(253,248,234,.66); -webkit-backdrop-filter: blur(12px) saturate(1.1); backdrop-filter: blur(12px) saturate(1.1); border-color: rgba(255,255,255,.6); }
+  .hero .mini, .sum-row .mini { background: rgba(255,251,240,.55); }
+  .tabbar-in { background: rgba(253,248,234,.8); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+  /* Totoro peeking over the "left to spend" card */
+  section[data-tab=home] { position: relative; }
+  section[data-tab=home] .hero { margin-top: 66px; }
+  .toto { position: absolute; right: 10px; top: -8px; width: 94px; z-index: 3; pointer-events: none; filter: drop-shadow(0 3px 4px rgba(74,64,49,.18)); }
+  /* lock screen: the full picture, with the calculator card at the bottom */
+  .lock { background: #e9c9cf url('bg.jpg') center top / cover no-repeat; align-items: flex-end; }
+  .lock-card { background: rgba(253,248,234,.8); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-color: rgba(255,255,255,.6); margin: auto 0 0; padding: 18px 18px 16px; }
+  .lock-card .sprout { display: none; }
 </style>
 </head>
 <body>
@@ -435,7 +453,7 @@
 <input type="file" id="importFile" accept=".pbk,application/json" style="display:none" onchange="importBackup(event)">
 
 <!-- SKY BANNER -->
-<div class="skybar" id="skybar" role="img" aria-label="Header picture"></div>
+
 
 <header>
   <div class="brand">🌿 Pocket<span>book</span></div>
@@ -470,6 +488,7 @@
 
 <!-- ================= HOME ================= -->
 <section class="tab" data-tab="home">
+<img class="toto" src="totoro.png" alt="">
 <div class="hero">
   <svg class="hills" viewBox="0 0 720 54" preserveAspectRatio="none"><path d="M0 54 L0 34 Q120 14 260 30 Q400 46 520 26 Q620 10 720 28 L720 54Z" fill="#cfe0c4"/></svg>
   <div class="hero-label" id="heroLabel">Left to spend this month</div>
@@ -1488,8 +1507,6 @@ function switchTab(t){
   tab=t;
   document.querySelectorAll('section.tab').forEach(sec=>sec.style.display = sec.dataset.tab===t ? 'block' : 'none');
   document.querySelectorAll('.tabbar .tb').forEach(b=>b.classList.toggle('act', b.dataset.tab===t));
-  document.getElementById('skybar').style.display = t==='home' ? 'block' : 'none';
-  document.body.classList.toggle('no-sky', t!=='home');
   window.scrollTo(0,0);
 }
 function renderRecent(){
