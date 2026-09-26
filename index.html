@@ -422,10 +422,9 @@
   .lock-card { background: rgba(253,248,234,.8); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-color: rgba(255,255,255,.6); margin: auto 0 0; padding: 18px 18px 16px; }
   .lock-card .sprout { display: none; }
   /* ---------- tab switch animation ---------- */
-  @keyframes tabInR { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: none; } }
-  @keyframes tabInL { from { opacity: 0; transform: translateX(-18px); } to { opacity: 1; transform: none; } }
-  section.tab.tab-in-r { animation: tabInR .26s cubic-bezier(.2,.8,.3,1); }
-  section.tab.tab-in-l { animation: tabInL .26s cubic-bezier(.2,.8,.3,1); }
+  /* just a soft fade — no sliding, so it's easy on the eyes */
+  @keyframes tabFade { from { opacity: 0; } to { opacity: 1; } }
+  section.tab.tab-in-r, section.tab.tab-in-l { animation: tabFade .22s ease-out; }
   .tb .ic svg { transition: transform .2s; }
   .tb.act .ic svg { transform: translateY(-1px) scale(1.08); }
   @media (prefers-reduced-motion: reduce) { section.tab.tab-in-r, section.tab.tab-in-l { animation: none; } }
