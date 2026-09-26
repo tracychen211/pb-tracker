@@ -415,6 +415,8 @@
   header { padding-top: calc(22px + env(safe-area-inset-top)); }
   /* heart-coin logo */
   .brand { font-family: 'Fredoka', 'Nunito', sans-serif; font-weight: 500; font-size: 27px; display: flex; align-items: center; gap: 7px; text-shadow: 0 1px 0 rgba(255,250,240,.8); }
+  header { flex-wrap: nowrap; }
+  .brand { font-size: clamp(22px, 7vw, 27px); min-width: 0; }
   .brand .coin { width: 38px; height: 38px; flex-shrink: 0; filter: drop-shadow(0 1px 1px rgba(74,64,49,.15)); }
   .brand .bw { color: #6a4f3d; }
   .brand .bw span { color: #d39a35; }
@@ -431,8 +433,7 @@
   .hero .mini, .sum-row .mini { background: rgba(255,251,240,.55); }
   .tabbar-in { background: rgba(253,248,234,.84); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
   /* Totoro peeking over the "left to spend" card */
-  section[data-tab=home] { position: relative; }
-  section[data-tab=home] .hero { margin-top: 66px; }
+  section[data-tab=home] { position: relative; padding-top: 66px; }
   .toto { position: absolute; right: 10px; top: -8px; width: 94px; z-index: 3; pointer-events: none; filter: drop-shadow(0 3px 4px rgba(74,64,49,.18)); }
   /* lock screen: the full picture, with the calculator card at the bottom */
   .lock { background: #e9c9cf url('bg.jpg') center top / cover no-repeat; align-items: flex-end; }
@@ -527,7 +528,6 @@
 <header>
   <div class="brand"><svg class="coin" viewBox="0 0 40 40" aria-hidden="true"><circle cx="19.5" cy="21.5" r="15" fill="#f5cf73" stroke="#8b6a52" stroke-width="2.2"/><circle cx="19.5" cy="21.5" r="11" fill="none" stroke="#d9a441" stroke-width="1.6" stroke-dasharray="2 2.4"/><path d="M19.5 28s-6-3.7-6-8.1c0-2.4 1.7-3.9 3.5-3.9 1.1 0 2 .6 2.5 1.4.5-.8 1.4-1.4 2.5-1.4 1.8 0 3.5 1.5 3.5 3.9 0 4.4-6 8.1-6 8.1z" fill="#e58f86" stroke="#8b6a52" stroke-width="1.6" stroke-linejoin="round"/><path d="M34 3.5l.9 2.4 2.4.9-2.4.9-.9 2.4-.9-2.4-2.4-.9 2.4-.9z" fill="#f0b94a" stroke="#8b6a52" stroke-width=".9" stroke-linejoin="round"/></svg><span class="bw">Pocket<span>book</span></span></div>
   <div class="hdr-right">
-    <div class="month-pill" id="monthPill">—</div>
     <button class="icon-btn" onclick="openMenu()" title="Menu">⋯</button>
   </div>
 </header>
@@ -1564,7 +1564,6 @@ function renderGrowth(){
 function render(){
   if(!state) return;
   ensureDebitBaseline(); // new month? record where checking started
-  document.getElementById('monthPill').textContent=monthLabel();
   updateMonthNav();
   const isWeek = period==='week';
 
