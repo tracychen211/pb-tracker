@@ -6,7 +6,7 @@
 <title>Pocketbook</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700&family=Fredoka:wght@400;500;600&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
   :root {
     /* cozy cream + summer-by-the-sea palette */
@@ -46,17 +46,17 @@
   button { font-family: 'Nunito', sans-serif; }
 
   /* ---------- decorative sky banner ---------- */
-  .skybar { position: relative; margin: 0 -16px 0; height: 92px; overflow: hidden;
-    background: linear-gradient(180deg, #a9d4e6 0%, #c3e2ee 55%, var(--bg) 100%); }
-  .skybar svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .skybar { position: relative; margin: 0 -16px 0; height: min(56vw, 300px); overflow: hidden;
+    background: #a9d4e6 url('header.jpg') center 45% / cover no-repeat; }
+  .skybar::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 24%;
+    background: linear-gradient(180deg, rgba(243,234,210,0) 0%, var(--bg) 100%); }
 
   /* Lock */
   .lock { position: fixed; inset: 0; background: var(--bg); z-index: 200; display: none; align-items: flex-start; justify-content: center; padding: 22px; overflow-y: auto;
     background-image: radial-gradient(circle at 20% 15%, rgba(143,196,221,.15) 0, transparent 40%), radial-gradient(circle at 1px 1px, rgba(74,64,49,.04) 1px, transparent 0); background-size: auto, 22px 22px; }
   .lock.on { display: flex; }
   .lock-card { background: var(--card); border: 1.5px solid var(--line); border-radius: 26px; padding: 26px 22px; max-width: 380px; width: 100%; box-shadow: var(--shadow); text-align: center; position: relative; margin: auto 0; }
-  .lock-card .keypad { margin-bottom: 14px; }
-  .lock-card .keypad button { height: 54px; }
+  .lock-card .keypad button { height: 52px; }
   .lock-card .sprout { margin: 0 auto 4px; display: block; }
   .lock-card h2 { font-size: 25px; margin: 6px 0 6px; color: var(--grass-deep); }
   .lock-card p { font-size: 14.5px; color: var(--ink-soft); line-height: 1.5; margin-bottom: 18px; }
@@ -256,17 +256,32 @@
 
   /* ---------- number pad ---------- */
   .overlay.pad-overlay { z-index: 300; }
-  .pad-display { font-family: 'Baloo 2',cursive; font-size: 40px; font-weight: 700; text-align: center; color: var(--grass-deep); background: var(--bg); border: 1.5px solid var(--line); border-radius: 18px; padding: 8px 10px; margin-bottom: 14px; min-height: 70px; display: flex; align-items: center; justify-content: center; }
-  .pad-display.empty { color: var(--ink-soft); opacity: .45; }
-  .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-  .keypad button { background: var(--bg); border: 1.5px solid var(--line); border-radius: 16px; height: 58px; font-family: 'Baloo 2',cursive; font-size: 25px; font-weight: 600; color: var(--ink); cursor: pointer; box-shadow: 0 3px 0 var(--line); touch-action: manipulation; user-select: none; -webkit-user-select: none; }
-  .keypad button:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--line); background: var(--bg2); }
-  .keypad button.k-fn { color: var(--ink-soft); font-size: 22px; }
+  /* cozy calculator: cream body, bear ears, sage LCD screen, rounded Fredoka digits */
+  .calc { position: relative; background: #fcefd9; border: 2.5px solid #8b6a52; border-radius: 28px; padding: 16px 14px 18px; margin: 20px 2px 16px; box-shadow: 0 4px 0 #e8d4b5, 0 10px 24px rgba(107,79,61,.12); }
+  .calc::before, .calc::after { content: ''; position: absolute; top: -16px; width: 38px; height: 18px; background: #fcefd9; border: 2.5px solid #8b6a52; border-bottom: none; border-radius: 100px 100px 0 0; }
+  .calc::before { left: 30px; } .calc::after { right: 30px; }
+  .calc .sparkle { position: absolute; right: -4px; top: -28px; transform: scaleX(-1); width: 26px; height: 26px; }
+  .calc-screen { background: #d8dbc6; border: 2.5px solid #8b6a52; border-radius: 14px; box-shadow: inset 0 3px 0 rgba(107,79,61,.13); padding: 6px 16px; min-height: 64px; margin-bottom: 18px; display: flex; align-items: center; justify-content: flex-end; font-family: 'Fredoka', 'Nunito', sans-serif; font-weight: 500; font-size: 38px; color: #5a4232; letter-spacing: .02em; font-variant-numeric: tabular-nums; }
+  .calc-screen.empty { color: #9a9d88; }
+  .calc-screen.pin { justify-content: center; }
+  .keypad { position: relative; z-index: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px 12px; padding-top: 4px; }
+  .keypad button { position: relative; top: 0; background: #fff8ea; border: 2px solid #b3927a; border-radius: 18px; height: 54px; font-family: 'Fredoka', 'Nunito', sans-serif; font-size: 26px; font-weight: 500; color: #6a4f3d; cursor: pointer; box-shadow: 0 3px 0 #dcc3a6; touch-action: manipulation; user-select: none; -webkit-user-select: none; transition: top .05s, box-shadow .05s; }
+  /* little bear ears on every key */
+  .keypad button::before, .keypad button::after { content: ''; position: absolute; top: -7px; width: 14px; height: 14px; border-radius: 50%; background: inherit; border: 2px solid #b3927a; z-index: -1; }
+  .keypad button::before { left: 11px; } .keypad button::after { right: 11px; }
+  .keypad button:active { top: 2px; box-shadow: 0 1px 0 #dcc3a6; background: #fbeed6; }
+  .keypad button.k-fn { background: #c9a383; border-color: #9c7a5f; color: #fff; box-shadow: 0 3px 0 #9c7a5f; font-size: 22px; }
+  .keypad button.k-fn::before, .keypad button.k-fn::after { border-color: #9c7a5f; }
+  .keypad button.k-fn:active { background: #bb9474; box-shadow: 0 1px 0 #9c7a5f; }
   .keypad button.k-blank { visibility: hidden; }
-  .pin-dots { display: flex; justify-content: center; gap: 14px; margin: 4px 0 14px; min-height: 18px; }
-  .pin-dots i { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--grass-deep); display: block; transition: background .12s; }
-  .pin-dots i.f { background: var(--grass-deep); }
-  .pad-display .pin-dots { margin: 0; }
+  .pin-dots { display: flex; justify-content: center; gap: 12px; min-height: 22px; }
+  .pin-dots svg { width: 22px; height: 22px; display: block; transition: transform .12s; }
+  .pin-dots svg.f { transform: scale(1.1); }
+  .pad-sheet h3 { font-family: 'Fredoka', 'Nunito', sans-serif; font-weight: 500; color: #6a4f3d; }
+  .pad-sheet .btn-primary { background: #b88b6a; box-shadow: 0 4px 0 #8b6a52; font-family: 'Fredoka', 'Nunito', sans-serif; font-weight: 500; }
+  .pad-sheet .btn-primary:active { transform: translateY(2px); box-shadow: 0 2px 0 #8b6a52; }
+  .pad-sheet .btn-ghost { font-family: 'Fredoka', 'Nunito', sans-serif; color: #8b6a52; }
+  .lock-card .calc { margin-top: 26px; }
   .amt-tap { cursor: pointer; caret-color: transparent; }
   .kb-link { background: none; border: none; color: var(--ink-soft); font-size: 13px; font-family: 'Nunito',sans-serif; text-decoration: underline; cursor: pointer; margin-top: 12px; }
 
@@ -307,9 +322,11 @@
     </svg>
     <h2 id="lockTitle">Set a passcode</h2>
     <p id="lockDesc">Pick a passcode to encrypt your data on this device.</p>
-    <div class="pin-dots" id="lockDots"></div>
+    <div class="calc" id="lockCalc"><svg class="sparkle" viewBox="0 0 26 26" fill="none" stroke="#8b6a52" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7c.6 3.4 1.6 4.4 5 5-3.4.6-4.4 1.6-5 5-.6-3.4-1.6-4.4-5-5 3.4-.6 4.4-1.6 5-5z"/><path d="M20 3l1 -2M23 6l2 -1"/></svg>
+      <div class="calc-screen pin"><div class="pin-dots" id="lockDots"></div></div>
+      <div class="keypad" id="lockKeys"></div>
+    </div>
     <div class="lock-err" id="lockErr"></div>
-    <div class="keypad" id="lockKeys"></div>
     <input type="password" id="lockPass" placeholder="Passcode" autocomplete="off" style="display:none">
     <input type="password" id="lockPass2" placeholder="Confirm passcode" autocomplete="off" style="display:none">
     <button class="lbtn" onclick="lockSubmit()">Continue</button>
@@ -321,21 +338,7 @@
 <input type="file" id="importFile" accept=".pbk,application/json" style="display:none" onchange="importBackup(event)">
 
 <!-- SKY BANNER -->
-<div class="skybar">
-  <svg viewBox="0 0 720 92" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="640" cy="30" r="20" fill="#f7d36b"/>
-    <circle cx="640" cy="30" r="28" fill="#f7d36b" opacity=".25"/>
-    <g fill="#fdfaf0">
-      <ellipse cx="120" cy="34" rx="34" ry="16"/><ellipse cx="150" cy="30" rx="26" ry="15"/><ellipse cx="92" cy="32" rx="22" ry="13"/>
-      <ellipse cx="430" cy="22" rx="28" ry="13"/><ellipse cx="458" cy="20" rx="20" ry="11"/>
-    </g>
-    <g fill="#7fa85a"><ellipse cx="40" cy="96" rx="120" ry="40"/><ellipse cx="300" cy="100" rx="160" ry="44"/><ellipse cx="620" cy="98" rx="150" ry="42"/></g>
-    <g fill="#8db968"><ellipse cx="180" cy="104" rx="140" ry="38"/><ellipse cx="520" cy="104" rx="150" ry="38"/></g>
-    <g stroke="#fdfaf0" stroke-width="2" fill="none" opacity=".8">
-      <path d="M250 26 q6 -6 12 0 q6 -6 12 0"/><path d="M540 40 q6 -6 12 0 q6 -6 12 0"/>
-    </g>
-  </svg>
-</div>
+<div class="skybar" role="img" aria-label="Header picture"></div>
 
 <header>
   <div class="brand">🌿 Pocket<span>book</span></div>
@@ -520,11 +523,13 @@
 
 <!-- NUMBER PAD (sits above everything, including the lock screen) -->
 <div class="overlay pad-overlay" id="padOverlay">
-  <div class="sheet">
+  <div class="sheet pad-sheet">
     <h3 id="padTitle">Amount</h3>
     <div class="desc" id="padSub" style="display:none"></div>
-    <div class="pad-display empty" id="padDisplay">$0</div>
-    <div class="keypad" id="padKeys"></div>
+    <div class="calc"><svg class="sparkle" viewBox="0 0 26 26" fill="none" stroke="#8b6a52" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7c.6 3.4 1.6 4.4 5 5-3.4.6-4.4 1.6-5 5-.6-3.4-1.6-4.4-5-5 3.4-.6 4.4-1.6 5-5z"/><path d="M20 3l1 -2M23 6l2 -1"/></svg>
+      <div class="calc-screen empty" id="padDisplay">$0</div>
+      <div class="keypad" id="padKeys"></div>
+    </div>
     <div class="sheet-btns"><button class="btn-ghost" onclick="padCancel()">Cancel</button><button class="btn-primary" onclick="padDone()">Done</button></div>
   </div>
 </div>
@@ -649,7 +654,13 @@ function keypadHTML(fn, withDot){
   return ks.map(k=> k==='' ? '<button type="button" class="k-blank" tabindex="-1"></button>'
     : `<button type="button" class="${k==='del'?'k-fn':''}" onclick="${fn}('${k}')" aria-label="${k==='del'?'Delete':k}">${k==='del'?'⌫':k}</button>`).join('');
 }
-function dotsHTML(n){ const slots=Math.max(4,n); let h=''; for(let i=0;i<slots;i++) h+=`<i class="${i<n?'f':''}"></i>`; return h; }
+// passcode shown as little hearts: filled for each digit typed
+function dotsHTML(n){
+  const slots=Math.max(4,n); let h='';
+  for(let i=0;i<slots;i++){ const f=i<n;
+    h+=`<svg viewBox="0 0 24 24" class="${f?'f':''}"><path d="M12 20.5s-7.5-4.6-7.5-10.1C4.5 7.4 6.6 5.5 8.9 5.5c1.4 0 2.5.7 3.1 1.8.6-1.1 1.7-1.8 3.1-1.8 2.3 0 4.4 1.9 4.4 4.9 0 5.5-7.5 10.1-7.5 10.1z" fill="${f?'#c9876f':'none'}" stroke="#8b6a52" stroke-width="2" stroke-linejoin="round"/></svg>`; }
+  return h;
+}
 
 let lockMode='new', lockBuf='', lockStep=1, lockFirst='', kbMode=false;
 function lockScreenOn(){ return document.getElementById('lockScreen').classList.contains('on'); }
@@ -660,8 +671,7 @@ function setLockText(){
   else { t.textContent='Set a passcode'; d.textContent='Pick a passcode (at least 4 digits) to encrypt your data on this device.'; w.style.display='block'; }
 }
 function applyLockMode(){
-  document.getElementById('lockDots').style.display = kbMode?'none':'flex';
-  document.getElementById('lockKeys').style.display = kbMode?'none':'grid';
+  document.getElementById('lockCalc').style.display = kbMode?'none':'block';
   document.getElementById('lockPass').style.display = kbMode?'block':'none';
   document.getElementById('lockPass2').style.display = (kbMode && lockMode==='new')?'block':'none';
   document.getElementById('kbToggle').textContent = kbMode ? 'Use number pad instead' : 'Use keyboard instead';
@@ -748,6 +758,7 @@ function askPad(opts){
 }
 function renderPad(){
   const el=document.getElementById('padDisplay'), b=padState.buf;
+  el.classList.toggle('pin', padState.mode==='pin');
   if(padState.mode==='pin'){ el.classList.remove('empty'); el.innerHTML=`<div class="pin-dots">${dotsHTML(b.length)}</div>`; return; }
   el.classList.toggle('empty', !b);
   if(!b){ el.textContent='$0'; return; }
