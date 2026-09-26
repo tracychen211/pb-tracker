@@ -750,6 +750,7 @@
       <button onclick="setName()"><span class="mi">👋</span><span>Your name<small id="nameSmall">Shows on the lock screen</small></span></button>
       <button onclick="changePass()"><span class="mi">🔑</span><span>Change passcode<small>Re-encrypts your data with a new passcode</small></span></button>
       <button onclick="lockNow()"><span class="mi">🔒</span><span>Lock now<small>Requires passcode to reopen</small></span></button>
+      <button onclick="pickAutoLock()"><span class="mi">⏱️</span><span>Auto-lock<small id="autoLockSmall">When you leave the app</small></span></button>
       <button onclick="resetEverything()" style="border-color:#e8c5b8"><span class="mi">🧹</span><span style="color:var(--accent)">Reset everything<small>Wipes all data and balances back to zero</small></span></button>
     </div>
     <div class="sheet-btns"><button class="btn-ghost" style="flex:1" onclick="closeMenu()">Close</button></div>
@@ -1093,7 +1094,7 @@ function finishUnlock(){
   ensureDebitBaseline();
   switchTab('home');
   if(state.name && !getName()) putName(state.name); // restored from a backup on a new device
-  updateNameMenu();
+  updateNameMenu(); updateAutoLockMenu();
   maybeRemindBackup();
   render();
 }
@@ -1191,7 +1192,45 @@ async function padInto(id, title){
 }
 function readMoney(id){ return parseFloat(document.getElementById(id).value.replace(/[^0-9.]/g,'')) || 0; }
 function closeOv(id){ document.getElementById(id).classList.remove('on'); }
-function lockNow(){ passcode=null; state=null; closeMenu(); initLock(); }
+function lockNow(){
+  passcode=null; state=null;
+  // close anything that was open so nothing shows through when it's unlocked again
+  document.querySelectorAll('.overlay.on').forEach(o=>o.classList.remove('on'));
+  if(padState) closePad(null);
+  if(dlgState) dlgClose(null);
+  if(typeof hideToast==='function') hideToast();
+  reviewEditId=null;
+  initLock();
+}
+
+// ---------- auto-lock when you leave the app ----------
+// Swiping an app away on Android often just hides it, so it would reopen unlocked. Instead, lock when it
+// goes off-screen: right away, or after 1 or 5 minutes (handy when checking your bank app).
+const AUTOLOCK_KEY='pocketbook_autolock';
+function autoLockSecs(){ try { const v=localStorage.getItem(AUTOLOCK_KEY); return v===null ? 0 : +v; } catch(e){ return 0; } }
+function autoLockLabel(){ const v=autoLockSecs(); return v===0 ? 'Immediately when you leave the app' : `${v/60} minute${v===60?'':'s'} after you leave the app`; }
+function updateAutoLockMenu(){ const el=document.getElementById('autoLockSmall'); if(el) el.textContent=autoLockLabel(); }
+async function pickAutoLock(){
+  closeMenu();
+  const cur=autoLockSecs();
+  const opts=[[0,'Immediately'],[60,'After 1 minute'],[300,'After 5 minutes']];
+  const v=await appDialog({icon:'⏱️', title:'Auto-lock', msg:'Lock Pocketbook when you leave it — switch apps, go home, or swipe it away.',
+    buttons:opts.map(([secs,l])=>({label:(secs===cur?'✓ ':'')+l, value:secs, kind:secs===cur?'primary':'ghost'}))});
+  if(v===null || v===undefined) return;
+  try { localStorage.setItem(AUTOLOCK_KEY, String(v)); } catch(e){}
+  updateAutoLockMenu();
+}
+let hiddenAt=null;
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState==='hidden'){
+    hiddenAt=Date.now();
+    if(state && autoLockSecs()===0) lockNow();
+  } else if(state && hiddenAt!==null && Date.now()-hiddenAt >= autoLockSecs()*1000){
+    lockNow();
+  }
+});
+// coming back to a page Chrome kept in memory counts as reopening
+addEventListener('pageshow', e=>{ if(e.persisted && state) lockNow(); });
 async function resetEverything(){
   closeMenu();
   if(!(await appConfirm({icon:'🧹', title:'Reset everything?', msg:'This permanently wipes <b>all transactions</b> and sets every balance to zero. It can’t be undone.', ok:'Yes, wipe it', danger:true}))) return;
