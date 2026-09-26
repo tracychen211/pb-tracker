@@ -9,6 +9,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-title" content="Pocketbook">
 <meta name="theme-color" content="#f3c9c6">
+<meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700&family=Fredoka:wght@400;500;600&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
@@ -464,6 +465,29 @@
   .rv-mid .t1 { font-weight: 600; font-size: 14.5px; display: flex; justify-content: space-between; gap: 8px; }
   .rv-amt { font-family: 'Baloo 2',cursive; font-weight: 700; }
   .rv-btns { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+  /* ---------- cozy pop-ups ---------- */
+  .dlg-overlay { position: fixed; inset: 0; z-index: 320; background: rgba(74,64,49,.38); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); display: none; align-items: center; justify-content: center; padding: 24px; }
+  .dlg-overlay.on { display: flex; animation: dlgFade .18s ease-out; }
+  .dlg { background: #fdf6e7; border: 2.5px solid #8b6a52; border-radius: 28px; box-shadow: 0 5px 0 #e8d4b5, 0 18px 40px rgba(74,64,49,.25); width: 100%; max-width: 340px; padding: 22px 20px 18px; text-align: center; animation: dlgPop .22s cubic-bezier(.2,.9,.3,1.2); }
+  @keyframes dlgFade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes dlgPop { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
+  .dlg-ic { font-size: 34px; line-height: 1; margin-bottom: 8px; }
+  .dlg-ic:empty { display: none; }
+  .dlg h3 { font-family: 'Fredoka','Nunito',sans-serif; font-weight: 500; font-size: 21px; color: #5a4232; margin-bottom: 6px; }
+  .dlg-msg { font-size: 14.5px; line-height: 1.5; color: #7a6650; margin-bottom: 16px; }
+  .dlg-msg:empty { display: none; }
+  .dlg-msg b { color: #5a4232; }
+  .dlg-msg .big { display: block; font-family: 'Baloo 2',cursive; font-weight: 700; font-size: 30px; color: #5a4232; line-height: 1.1; margin: 2px 0 2px; }
+  .dlg-msg .big.in { color: var(--grass-deep); }
+  .dlg input { width: 100%; padding: 13px 14px; border: 2px solid #d9c3a6; border-radius: 14px; background: #fff; font-family: 'Nunito',sans-serif; font-size: 17px; color: #5a4232; margin-bottom: 14px; text-align: center; }
+  .dlg input:focus { outline: none; border-color: #b88b6a; }
+  .dlg-btns { display: flex; gap: 10px; }
+  .dlg-btns.stack { flex-direction: column; }
+  .dlg-btns button { flex: 1; border-radius: 16px; padding: 13px 10px; font-family: 'Fredoka','Nunito',sans-serif; font-size: 16px; font-weight: 500; cursor: pointer; border: 2px solid transparent; }
+  .dlg-btns .primary { background: #b88b6a; color: #fff; box-shadow: 0 3px 0 #8b6a52; }
+  .dlg-btns .danger { background: #d98068; color: #fff; box-shadow: 0 3px 0 #a9573f; }
+  .dlg-btns .ghost { background: #f3e7d1; color: #8b6a52; border-color: #e3d2b3; }
+  .dlg-btns button:active { transform: translateY(2px); box-shadow: none; }
 </style>
 </head>
 <body>
@@ -753,6 +777,17 @@
   </div>
 </div>
 
+<!-- COZY POP-UP (replaces the browser's alert/confirm/prompt boxes) -->
+<div class="dlg-overlay" id="dlgOverlay">
+  <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
+    <div class="dlg-ic" id="dlgIcon"></div>
+    <h3 id="dlgTitle"></h3>
+    <div class="dlg-msg" id="dlgMsg"></div>
+    <input type="text" id="dlgInput" autocomplete="off" style="display:none">
+    <div class="dlg-btns" id="dlgBtns"></div>
+  </div>
+</div>
+
 <!-- NUMBER PAD (sits above everything, including the lock screen) -->
 <div class="overlay pad-overlay" id="padOverlay">
   <div class="sheet pad-sheet">
@@ -900,23 +935,28 @@ const NAME_KEY='pocketbook_name';
 function getName(){ try { return localStorage.getItem(NAME_KEY)||''; } catch(e){ return ''; } }
 function putName(n){ try { if(n) localStorage.setItem(NAME_KEY, n); else localStorage.removeItem(NAME_KEY); } catch(e){} }
 async function setName(){
-  const v=prompt('Your name (shows on the lock screen):', getName()); if(v===null) return;
+  closeMenu();
+  const v=await appPrompt({icon:'👋', title:'What should I call you?', msg:'It shows on the lock screen: “Welcome back, …”', value:getName(), placeholder:'Your name'}); if(v===null) return;
   const n=v.trim().slice(0,24);
-  putName(n); state.name=n; await save(); updateNameMenu(); closeMenu();
+  putName(n); state.name=n; await save(); updateNameMenu();
 }
 function updateNameMenu(){ const el=document.getElementById('nameSmall'); if(el) el.textContent = getName() ? `Shows “Welcome back, ${getName()}”` : 'Shows on the lock screen'; }
 
 // Forgotten passcode: the data is encrypted with it and can't be recovered, so the only way in is to start fresh.
-function forgotPasscode(){
-  if(!confirm('Forgot your passcode?\n\nYour data is locked with it and there\u2019s no way to recover it \u2014 that\u2019s what keeps it private.\n\nResetting ERASES everything saved on this device and starts fresh with a new passcode.')) return;
-  const typed=prompt('This can\u2019t be undone. Backup files made with the old passcode will still need that passcode.\n\nType RESET to erase this device\u2019s data:');
+async function forgotPasscode(){
+  const go=await appConfirm({icon:'🔑', title:'Forgot your passcode?',
+    msg:'Your data is locked with it, and there’s no way to recover it — that’s what keeps it private.<br><br>Resetting <b>erases everything saved on this device</b> so you can start fresh.',
+    ok:'Reset the app', cancel:'Keep trying', danger:true});
+  if(!go) return;
+  const typed=await appPrompt({icon:'⚠️', title:'Type RESET to confirm',
+    msg:'This can’t be undone. Backup files made with the old passcode will still need that passcode.', placeholder:'RESET', ok:'Erase', danger:true});
   if(typed===null) return;
-  if(typed.trim().toUpperCase()!=='RESET'){ alert('Not reset \u2014 you didn\u2019t type RESET.'); return; }
+  if(typed.trim().toUpperCase()!=='RESET'){ await appAlert('Not reset', 'You didn’t type RESET, so nothing was erased.', '🌿'); return; }
   try { localStorage.removeItem(STORE_KEY); localStorage.removeItem(NAME_KEY); } catch(e){}
   passcode=null; state=null;
   initLock();
   document.getElementById('lockErr').textContent='';
-  alert('Done. Pick a new passcode to start fresh \u2014 or import a backup if you remember its passcode.');
+  await appAlert('All fresh', 'Pick a new passcode to start over — or import a backup if you remember its passcode.', '🌱');
 }
 
 let lockMode='new', lockBuf='', lockStep=1, lockFirst='', kbMode=false;
@@ -999,6 +1039,43 @@ function finishUnlock(){
   render();
 }
 
+// ---------- cozy pop-ups (instead of the browser's grey alert/confirm/prompt) ----------
+let dlgState=null;
+// buttons: [{label, value, kind:'primary'|'ghost'|'danger'}]. Resolves with the tapped button's value,
+// the typed text for input pop-ups, or null if dismissed.
+function appDialog({icon='', title='', msg='', buttons=[{label:'OK', value:true, kind:'primary'}], input=null}){
+  return new Promise(res=>{
+    if(dlgState) dlgState.res(null);
+    dlgState={res, input:!!input, buttons};
+    document.getElementById('dlgIcon').textContent=icon;
+    document.getElementById('dlgTitle').textContent=title;
+    document.getElementById('dlgMsg').innerHTML=msg;
+    const inp=document.getElementById('dlgInput');
+    inp.style.display = input ? 'block' : 'none';
+    if(input){ inp.value=input.value||''; inp.placeholder=input.placeholder||''; }
+    const row=document.getElementById('dlgBtns');
+    row.classList.toggle('stack', buttons.length>2);
+    row.innerHTML=buttons.map((b,i)=>`<button type="button" class="${b.kind||'ghost'}" onclick="dlgPick(${i})">${escHtml(b.label)}</button>`).join('');
+    document.getElementById('dlgOverlay').classList.add('on');
+    if(document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    if(input) setTimeout(()=>{ inp.focus(); inp.select(); }, 60);
+  });
+}
+function dlgClose(val){ const d=dlgState; dlgState=null; document.getElementById('dlgOverlay').classList.remove('on'); if(d) d.res(val); }
+function dlgPick(i){
+  if(!dlgState) return;
+  const b=dlgState.buttons[i];
+  if(dlgState.input && b.value===true) dlgClose(document.getElementById('dlgInput').value);
+  else dlgClose(dlgState.input ? null : b.value);
+}
+function appAlert(title, msg='', icon='🌸'){ return appDialog({icon, title, msg, buttons:[{label:'OK', value:true, kind:'primary'}]}); }
+async function appConfirm({icon='', title, msg='', ok='OK', cancel='Cancel', danger=false}){
+  return (await appDialog({icon, title, msg, buttons:[{label:cancel, value:false, kind:'ghost'},{label:ok, value:true, kind:danger?'danger':'primary'}]}))===true;
+}
+function appPrompt({icon='', title, msg='', value='', placeholder='', ok='Save', danger=false}){
+  return appDialog({icon, title, msg, input:{value, placeholder}, buttons:[{label:'Cancel', value:false, kind:'ghost'},{label:ok, value:true, kind:danger?'danger':'primary'}]});
+}
+
 // ---------- pop-up number pad (amounts + passcodes) ----------
 let padState=null;
 function askPad(opts){
@@ -1057,21 +1134,22 @@ function readMoney(id){ return parseFloat(document.getElementById(id).value.repl
 function closeOv(id){ document.getElementById(id).classList.remove('on'); }
 function lockNow(){ passcode=null; state=null; closeMenu(); initLock(); }
 async function resetEverything(){
-  if(!confirm('Reset EVERYTHING? This permanently wipes all transactions and sets every balance to zero. Your categories stay. This cannot be undone.')) return;
-  if(!confirm('Are you absolutely sure? Consider exporting a backup first if you might want this data later.')) return;
+  closeMenu();
+  if(!(await appConfirm({icon:'🧹', title:'Reset everything?', msg:'This permanently wipes <b>all transactions</b> and sets every balance to zero. It can’t be undone.', ok:'Yes, wipe it', danger:true}))) return;
+  if(!(await appConfirm({icon:'🗂️', title:'Are you sure?', msg:'If you might want this data later, export a backup first.', ok:'Wipe everything', cancel:'Go back', danger:true}))) return;
   state = migrate(freshState());
   await save();
   closeMenu();
   render();
-  alert('All set \u2014 everything is back to zero. Set your balances with the Set buttons when you\u2019re ready.');
+  await appAlert('All set', 'Everything is back to zero. Set your balances with the Set buttons when you’re ready.', '🌱');
 }
 async function changePass(){
   closeMenu();
   const np=await askPad({title:'New passcode', sub:'At least 4 digits.', mode:'pin'}); if(np===null) return;
-  if(np.length<4){ alert('Too short — use at least 4 digits.'); return; }
+  if(np.length<4){ await appAlert('Too short', 'Use at least 4 digits.', '🔢'); return; }
   const c=await askPad({title:'Confirm new passcode', mode:'pin'}); if(c===null) return;
-  if(c!==np){ alert("Passcodes don't match."); return; }
-  passcode=np; await save(); alert('Passcode changed.');
+  if(c!==np){ await appAlert('Those didn’t match', 'Your passcode wasn’t changed. Try again.', '🔁'); return; }
+  passcode=np; await save(); await appAlert('Passcode changed', 'Use your new passcode next time you unlock.', '🔒');
 }
 
 function downloadBlob(blob, name){
@@ -1131,15 +1209,15 @@ function importBackup(ev){
   const file=ev.target.files[0]; if(!file) return;
   const reader=new FileReader();
   reader.onload=async()=>{
-    let payload; try{ payload=JSON.parse(reader.result); }catch(e){ alert('That file isn\u2019t a valid backup.'); return; }
+    let payload; try{ payload=JSON.parse(reader.result); }catch(e){ await appAlert('Hmm, that’s not a backup', 'Pick the .pbk file you exported from Pocketbook.', '📄'); return; }
     const pc=await askPad({title:'Backup passcode', sub:'Enter the passcode this backup was saved with.', mode:'pin'}); if(pc===null) return;
     try{
       const data=await decryptData(payload, pc); state=migrate(data); passcode=pc; if(state.name && !getName()) putName(state.name); updateNameMenu();
       ensureDebitBaseline(); await save();
       document.getElementById('lockScreen').classList.remove('on'); closeMenu();
       state.month=monthKey();
-      render(); alert('Backup restored.');
-    }catch(e){ alert('Wrong passcode for this backup, or the file is corrupted.'); }
+      render(); await appAlert('Backup restored', 'Everything from your backup is back.', '🌸');
+    }catch(e){ await appAlert('Couldn’t open it', 'That’s the wrong passcode for this backup, or the file is damaged.', '🔒'); }
   };
   reader.readAsText(file); ev.target.value='';
 }
@@ -1240,14 +1318,14 @@ function applyReimb(reimb, sign){
 }
 async function saveExpense(){
   const amt=readMoney('inAmt');
-  if(!amt||amt<=0){ alert('Enter an amount'); return; }
+  if(!amt||amt<=0){ await appAlert('How much was it?', 'Tap the amount to enter it.', '🪙'); return; }
   const cat=document.getElementById('inCat').value;
   const note=document.getElementById('inNote').value.trim();
   let reimb=readMoney('inReimb');
   if(reimb<0) reimb=0;
-  if(reimb>amt){ alert("Paid-back amount can't be more than the total."); return; }
+  if(reimb>amt){ await appAlert('That’s more than the total', 'The paid-back amount can’t be bigger than what you spent.', '🤔'); return; }
   const ts=chosenTs();
-  if(!ts){ alert('Pick a date that isn’t in the future.'); return; }
+  if(!ts){ await appAlert('That’s in the future', 'Pick today or an earlier day.', '📅'); return; }
   const backdated = isoDay(new Date(ts))!==isoDay(new Date());
   const inPattern = document.getElementById('inPattern').checked;
   if(editingId){
@@ -1301,13 +1379,29 @@ async function payCard(){
   state.tx.unshift({ id:newId(), amt:pay, type:'payoff', ts:Date.now() });
   await save(); render();
 }
-// Undo a paycheck, card payoff, or withdrawal (reverses its effect on balances)
+// Tap a paycheck, card payoff, or withdrawal: see it, change a paycheck's amount, or remove it
 async function undoTx(id){
   const t=state.tx.find(x=>x.id===id); if(!t) return;
-  const msg={ income:`Remove this $${fmt(t.amt)} paycheck? It comes back out of debit.`,
-    payoff:`Undo this $${fmt(t.amt)} card payoff? It goes back on the card and back into debit.`,
-    withdraw:`Undo this $${fmt(t.amt)} withdrawal? It moves from your wallet back to debit.` }[t.type];
-  if(!msg || !confirm(msg)) return;
+  const when=new Date(t.ts).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+  const info={
+    income:  { icon:'💰', title:'Paycheck', big:`<span class="big in">+$${fmt(t.amt)}</span>`, sub:`into debit · ${when}`, rm:'Remove paycheck',
+               why:'Removing it takes the money back out of debit.' },
+    payoff:  { icon:'💳', title:'Card payoff', big:`<span class="big">$${fmt(t.amt)}</span>`, sub:`debit → card · ${when}`, rm:'Undo payoff',
+               why:'Undoing puts it back on the card and back into debit.' },
+    withdraw:{ icon:'🏧', title:'Cash withdrawal', big:`<span class="big">$${fmt(t.amt)}</span>`, sub:`debit → wallet · ${when}`, rm:'Undo withdrawal',
+               why:'Undoing moves it from your wallet back to debit.' },
+  }[t.type];
+  if(!info) return;
+  const buttons=[];
+  if(t.type==='income') buttons.push({label:'Change amount', value:'edit', kind:'primary'});
+  buttons.push({label:info.rm, value:'remove', kind:'danger'}, {label:'Close', value:null, kind:'ghost'});
+  const pick=await appDialog({icon:info.icon, title:info.title, msg:`${info.big}${info.sub}`, buttons});
+  if(pick==='edit'){
+    const n=await askAmount('Paycheck', t.amt, 'Fix the amount — debit adjusts to match.'); if(n===null||n<=0) return;
+    state.debit=r2(state.debit+(n-t.amt)); t.amt=n; await save(); render(); return;
+  }
+  if(pick!=='remove') return;
+  if(!(await appConfirm({icon:info.icon, title:`${info.rm}?`, msg:info.why, ok:info.rm.split(' ')[0], danger:true}))) return;
   if(t.type==='income') state.debit=r2(state.debit-t.amt);
   else if(t.type==='payoff'){ state.card=r2(state.card+t.amt); state.debit=r2(state.debit+t.amt); }
   else if(t.type==='withdraw'){ state.wallet=r2(state.wallet-t.amt); state.debit=r2(state.debit+t.amt); }
@@ -1344,7 +1438,7 @@ function renderCatManager(){
     </div>`).join('');
   document.getElementById('cmNewEmoji').textContent = newCatEmoji || '\ud83c\udf37';
 }
-async function renameCategory(id){ const c=state.cats.find(x=>x.id===id); if(!c) return; const v=prompt('Rename category:', c.name); if(v===null||!v.trim()) return; c.name=v.trim(); await save(); renderCatManager(); render(); }
+async function renameCategory(id){ const c=state.cats.find(x=>x.id===id); if(!c) return; const v=await appPrompt({icon:c.icon, title:'Rename category', value:c.name, placeholder:'Category name'}); if(v===null||!v.trim()) return; c.name=v.trim(); await save(); renderCatManager(); render(); }
 async function editCatLimit(id){ const c=state.cats.find(x=>x.id===id); if(!c) return; const n=await askAmount('Limit \u2014 '+c.name, c.limit, 'Monthly limit. Leave at $0 for no limit.'); if(n===null) return; c.limit=n; await save(); renderCatManager(); render(); }
 
 let emojiTarget=null, newCatEmoji=null;
@@ -1367,9 +1461,9 @@ function useCustomEmoji(){
   pickEmoji(first);
 }
 async function removeCategory(id){
-  if(state.cats.length<=1){ alert('Keep at least one category.'); return; }
+  if(state.cats.length<=1){ await appAlert('Keep at least one', 'You need at least one category.', '🧺'); return; }
   const c=state.cats.find(x=>x.id===id);
-  if(!confirm(`Remove "${c.name}"? Its past spending will show as "Other".`)) return;
+  if(!(await appConfirm({icon:c.icon, title:`Remove “${c.name}”?`, msg:'Its past spending will show as “Other.”', ok:'Remove', danger:true}))) return;
   state.cats=state.cats.filter(x=>x.id!==id); await save(); renderCatManager(); render();
 }
 async function addCategory(){
@@ -1889,11 +1983,17 @@ document.getElementById('lockPass').addEventListener('keydown', e=>{ if(e.key===
 document.getElementById('lockPass2').addEventListener('keydown', e=>{ if(e.key==='Enter') lockSubmit(); });
 ['addOverlay','catOverlay','menuOverlay','growthOverlay','emojiOverlay','catDetailOverlay','reviewOverlay'].forEach(id=>{ document.getElementById(id).addEventListener('click', e=>{ if(e.target.id===id) document.getElementById(id).classList.remove('on'); }); });
 document.getElementById('padOverlay').addEventListener('click', e=>{ if(e.target.id==='padOverlay') padCancel(); });
+document.getElementById('dlgOverlay').addEventListener('click', e=>{ if(e.target.id==='dlgOverlay') dlgClose(null); });
 document.getElementById('emojiCustom').addEventListener('keydown', e=>{ if(e.key==='Enter') useCustomEmoji(); });
 document.getElementById('lockKeys').innerHTML = keypadHTML('lockKey', false);
 // Laptop: typing on a real keyboard works with both number pads
 document.addEventListener('keydown', e=>{
   if(e.metaKey || e.ctrlKey || e.altKey) return;
+  if(dlgState){
+    if(e.key==='Escape'){ dlgClose(null); e.preventDefault(); }
+    else if(e.key==='Enter'){ const i=dlgState.buttons.findIndex(b=>b.value===true); dlgPick(i>=0?i:dlgState.buttons.length-1); e.preventDefault(); }
+    return;
+  }
   if(padState){
     if(/^[0-9]$/.test(e.key)) padKey(e.key);
     else if(e.key==='.' && padState.mode==='amount') padKey('.');
@@ -1930,6 +2030,8 @@ if(!('crypto' in window) || !crypto.subtle){ document.getElementById('lockDesc')
   addEventListener('resize', move);
   move();
 })();
+// Offline + installable app (Android "Install app"). Data never goes through this — it stays in local storage.
+if('serviceWorker' in navigator) addEventListener('load', ()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 initLock();
 </script>
 </body>
