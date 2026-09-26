@@ -1,7 +1,7 @@
 // Pocketbook service worker: lets the app install and open offline.
 // Always tries the network first so updates show up right away; falls back to the saved copy offline.
 // (Your data is never here — it stays encrypted in the app's own storage.)
-const CACHE = 'pocketbook-v7';
+const CACHE = 'pocketbook-v8';
 const SHELL = ['./', 'index.html', 'bg.jpg', 'totoro.png', 'favicon.svg', 'icon-192.png', 'icon-512.png', 'manifest.webmanifest'];
 
 self.addEventListener('install', e => {

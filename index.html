@@ -509,6 +509,8 @@
   .toast { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(10px); z-index: 90; background: #5a4232; color: #fdf6e7; border-radius: 100px; padding: 8px 8px 8px 18px; display: flex; align-items: center; gap: 12px; font-size: 14px; box-shadow: 0 6px 20px rgba(74,64,49,.3); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; max-width: calc(100vw - 32px); white-space: nowrap; }
   .toast.on { opacity: 1; transform: translateX(-50%); pointer-events: auto; }
   .toast button { background: #f5cf73; color: #5a4232; border: none; border-radius: 100px; padding: 7px 14px; font-weight: 800; font-family: 'Nunito',sans-serif; font-size: 13.5px; cursor: pointer; }
+  .drill-day { display: flex; justify-content: space-between; font-family: 'Baloo 2',cursive; font-weight: 700; font-size: 13.5px; color: var(--ink-soft); margin: 10px 0 0; padding: 3px 10px; background: var(--bg); border-radius: 10px; }
+  .drill-day span { font-family: 'Nunito',sans-serif; font-size: 12.5px; }
 </style>
 </head>
 <body>
@@ -1627,6 +1629,10 @@ function renderDonut(spentByCat, total){
   wrap.innerHTML=`<div class="chart-wrap"><div class="donut"><svg viewBox="0 0 130 130" width="130" height="130">${segs}</svg><div class="center"><div class="ct-amt">$${fmt(total)}</div><div class="ct-lbl">${lbl}</div></div></div><div class="legend">${legend}</div></div>`;
 }
 
+// A purchase saved at exactly midnight UTC only has a date (e.g. imported), not a real time.
+function dateOnly(t){ return t.ts % 864e5 === 0; }
+function txDay(t){ if(dateOnly(t)){ const d=new Date(t.ts); return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 12); } return new Date(t.ts); }
+function timeKnown(t){ return !t.backdated && !dateOnly(t); }
 function shortDate(ts){ return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
 
 // Biggest single purchases + places/things you keep coming back to
@@ -1777,7 +1783,7 @@ const OTHER_TX = {
   payoffCash:{ ic:'💳', t1:'Card payoff',   t2:'cash → card · not spending',  cls:'pay',  pre:'' },
   withdraw:{ ic:'🏧', t1:'Cash withdrawal', t2:'debit → wallet',              cls:'move', pre:'' },
 };
-function txRowHTML(t, fromDetail){
+function txRowHTML(t, fromDetail, showTime){
   if(t.type!=='exp'){
     const o=OTHER_TX[t.type==='payoff' && t.from==='cash' ? 'payoffCash' : t.type]; if(!o) return '';
     return `<div class="tx" onclick="undoTx(${t.id})"><div class="tx-ic">${o.ic}</div><div class="tx-mid"><div class="t1">${o.t1}</div><div class="t2">${o.t2} · ${shortDate(t.ts)}</div></div><div class="tx-amt ${o.cls}">${o.pre}$${fmt(t.amt)}</div><span class="tx-chev">›</span></div>`;
@@ -1793,7 +1799,7 @@ function txRowHTML(t, fromDetail){
     ? `<div style="text-align:right"><div class="tx-amt">$${fmt(netAmt(t))}</div><div style="font-size:11px;color:var(--ink-soft);text-decoration:line-through">$${fmt(t.amt)}</div></div>`
     : `<div class="tx-amt">$${fmt(t.amt)}</div>`;
   const click = fromDetail ? `closeOv('catDetailOverlay');openEdit(${t.id})` : `openEdit(${t.id})`;
-  return `<div class="tx" onclick="${click}"><div class="tx-ic">${m.icon}</div><div class="tx-mid"><div class="t1">${escHtml(t.note || m.name)}</div><div class="t2">${escHtml(m.name)} · ${shortDate(t.ts)} ${chip}${reimbChip}</div></div>${amtHtml}<span class="tx-chev">›</span></div>`;
+  return `<div class="tx" onclick="${click}"><div class="tx-ic">${m.icon}</div><div class="tx-mid"><div class="t1">${escHtml(t.note || m.name)}</div><div class="t2">${escHtml(m.name)} · ${showTime ? (timeKnown(t) ? new Date(t.ts).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}) : 'time unknown') : txDay(t).toLocaleDateString('en-US',{month:'short',day:'numeric'})} ${chip}${reimbChip}</div></div>${amtHtml}<span class="tx-chev">›</span></div>`;
 }
 
 // ---------- tabs ----------
@@ -1875,11 +1881,20 @@ function smoothPath(pts){
 function niceMax(v){ if(v<=0) return 8; const st=v/4, p=Math.pow(10,Math.floor(Math.log10(st))); for(const m of [1,2,2.5,3,4,5,6,8,10]){ if(m*p>=st && (m*p>=1 ? Number.isInteger(m*p) : true)) return m*p*4; } return 40*p; }
 // List of purchases that sits under a chart after you tap part of it
 function drillHTML(title, list, closeJs, note){
-  const rows=[...list].sort((a,b)=>b.ts-a.ts);
+  const rows=[...list].sort((a,b)=>txDay(b)-txDay(a) || b.ts-a.ts);
   const total=r2(rows.reduce((x,t)=>x+netAmt(t),0));
-  const shown=rows.slice(0,30);
+  const shown=rows.slice(0,40);
+  // group by calendar day so different weeks don't blur together
+  let body='', lastDay='';
+  shown.forEach(t=>{
+    const d=txDay(t), key=isoDay(d);
+    if(key!==lastDay){ lastDay=key;
+      const dayTotal=r2(shown.filter(x=>isoDay(txDay(x))===key).reduce((s,x)=>s+netAmt(x),0));
+      body+=`<div class="drill-day">${d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}<span>$${fmt(dayTotal)}</span></div>`; }
+    body+=txRowHTML(t, false, true);
+  });
   return `<div class="drill"><div class="drill-head"><b>${title}</b><span>$${fmt(total)} · ${rows.length} ${rows.length===1?'purchase':'purchases'}</span><button onclick="${closeJs}" aria-label="Close">✕</button></div>`+
-    (rows.length ? shown.map(t=>txRowHTML(t)).join('') : '<div class="empty" style="padding:14px">No purchases here.</div>')+
+    (rows.length ? body : '<div class="empty" style="padding:14px">No purchases here.</div>')+
     (rows.length>shown.length ? `<div class="pace" style="text-align:center;padding:6px">+${rows.length-shown.length} more</div>` : '')+
     (note ? `<div class="pace" style="padding:4px 2px 2px">${note}</div>` : '')+`</div>`;
 }
@@ -2079,14 +2094,14 @@ function renderWhen(){
   const banner = nLate ? `<button class="review-banner" onclick="openReview()"><span>🧐</span><span><b>${nLate} purchases</b> look like they were logged later, so their day or time may be off. <u>Review them</u></span></button>` : '';
   if(ex.length<5){ el.innerHTML=banner+'<div class="chart-empty">Log a few more purchases to see your patterns.</div>'; return; }
   const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], FULL=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
-  const dowI=t=>(new Date(t.ts).getDay()+6)%7;
+  const dowI=t=>(txDay(t).getDay()+6)%7;
   const dow=[0,0,0,0,0,0,0];
   ex.forEach(t=>{ dow[dowI(t)]+=netAmt(t); });
   const maxD=Math.max(...dow), topD=dow.indexOf(maxD), total=dow.reduce((a,b)=>a+b,0);
   // time of day only uses purchases logged when they happened (backdated ones have no real time)
   const SLOTS=[['Morning','5am–12pm',5,12],['Afternoon','12–5pm',12,17],['Evening','5–10pm',17,22],['Late night','10pm–5am',22,29]];
   const todI=t=>{ let h=new Date(t.ts).getHours(); if(h<5) h+=24; return SLOTS.findIndex(x=>h>=x[2]&&h<x[3]); };
-  const timed=ex.filter(t=>!t.backdated);
+  const timed=ex.filter(timeKnown);
   const tod=[0,0,0,0], todN=[0,0,0,0];
   timed.forEach(t=>{ const i=todI(t); if(i>=0){ tod[i]+=netAmt(t); todN[i]++; } });
   const todTotal=tod.reduce((a,b)=>a+b,0), maxT=Math.max(...tod), topT=tod.indexOf(maxT);
