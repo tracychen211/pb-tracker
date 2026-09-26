@@ -406,8 +406,11 @@
   /* ---------- wallpaper: cozy window picture behind everything, softened with a cream wash ---------- */
   html { background: #e9c9cf; overflow-x: hidden; }
   html body { background: transparent; background-image: none; }
-  body::before { content: ''; position: fixed; inset: 0; z-index: -2; background: #e9c9cf url('bg.jpg') center top / cover no-repeat; }
-  body::after { content: ''; position: fixed; inset: 0; z-index: -1; background: rgba(250,240,225,.38); }
+  /* The picture is a fixed layer a bit taller than the screen. It's sized to the *largest* screen height
+     (lvh), so Safari's address bar showing/hiding never resizes it, and it drifts slowly as you scroll. */
+  #wall { position: fixed; left: 0; right: 0; top: 0; height: 120vh; height: 120lvh; z-index: -1; pointer-events: none;
+    background: #e9c9cf url('bg.jpg') center top / cover no-repeat; will-change: transform; transform: translate3d(0,0,0); }
+  #wall::after { content: ''; position: absolute; inset: 0; background: rgba(250,240,225,.38); }
   header { padding-top: calc(22px + env(safe-area-inset-top)); }
   /* heart-coin logo */
   .brand { font-family: 'Fredoka', 'Nunito', sans-serif; font-weight: 500; font-size: 27px; display: flex; align-items: center; gap: 7px; text-shadow: 0 1px 0 rgba(255,250,240,.8); }
@@ -417,11 +420,15 @@
   .monthnav .mn-label { background: rgba(253,248,234,.7); border-radius: 100px; padding: 5px 12px; }
   .sec-head h2 { text-shadow: 0 0 10px rgba(253,248,234,.95), 0 0 3px rgba(253,248,234,.9); white-space: nowrap; }
   /* frosted-glass cards */
+  /* frosted cards: most get a soft see-through cream (cheap to draw), and only the few big cards
+     get a live blur, so scrolling stays smooth on a phone */
   .hero, .credit, .chart-card, .big-card, .cat, .when-card, .sum-card, .trend-card, #txList, #recentList, .otbar, .period,
   .month-pill, .icon-btn, .mn-arrow, .sortbar button, .filterbar button:not(.act), .mini-seg, .backup-banner {
-    background: rgba(253,248,234,.66); -webkit-backdrop-filter: blur(12px) saturate(1.1); backdrop-filter: blur(12px) saturate(1.1); border-color: rgba(255,255,255,.6); }
+    background: rgba(253,248,234,.76); border-color: rgba(255,255,255,.6); }
+  .hero, .sum-card, .trend-card, .chart-card {
+    background: rgba(253,248,234,.66); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
   .hero .mini, .sum-row .mini { background: rgba(255,251,240,.55); }
-  .tabbar-in { background: rgba(253,248,234,.8); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+  .tabbar-in { background: rgba(253,248,234,.84); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
   /* Totoro peeking over the "left to spend" card */
   section[data-tab=home] { position: relative; }
   section[data-tab=home] .hero { margin-top: 66px; }
@@ -440,6 +447,7 @@
 </style>
 </head>
 <body>
+<div id="wall" aria-hidden="true"></div>
 
 <!-- LOCK SCREEN -->
 <div class="lock on" id="lockScreen">
@@ -1821,6 +1829,22 @@ document.addEventListener('keydown', e=>{
   }
 });
 if(!('crypto' in window) || !crypto.subtle){ document.getElementById('lockDesc').textContent='Your browser doesn\u2019t support secure encryption here. Open this file directly on your device over https://.'; }
+// Gentle parallax: the picture drifts up a little as you scroll down the page (at most ~20% of the screen).
+(function(){
+  const wall=document.getElementById('wall');
+  if(!wall || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  let ticking=false;
+  function move(){
+    ticking=false;
+    const room = wall.offsetHeight - window.innerHeight;           // extra picture below the screen
+    const max  = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+    const prog = Math.min(1, Math.max(0, window.scrollY / max));   // 0 at top, 1 at bottom
+    wall.style.transform = `translate3d(0, ${(-prog*Math.max(0,room)).toFixed(1)}px, 0)`;
+  }
+  addEventListener('scroll', ()=>{ if(!ticking){ ticking=true; requestAnimationFrame(move); } }, {passive:true});
+  addEventListener('resize', move);
+  move();
+})();
 initLock();
 </script>
 </body>
