@@ -490,6 +490,7 @@
       <button onclick="exportBackup()"><span class="mi">⬇️</span><span>Export encrypted backup<small>Downloads a .pbk file for another device</small></span></button>
       <button onclick="exportCSV()"><span class="mi">📊</span><span>Export to CSV<small>All transactions as a spreadsheet · not encrypted</small></span></button>
       <button onclick="document.getElementById('importFile').click()"><span class="mi">⬆️</span><span>Import a backup<small>Replaces current data with a backup file</small></span></button>
+      <button onclick="setName()"><span class="mi">👋</span><span>Your name<small id="nameSmall">Shows on the lock screen</small></span></button>
       <button onclick="changePass()"><span class="mi">🔑</span><span>Change passcode<small>Re-encrypts your data with a new passcode</small></span></button>
       <button onclick="lockNow()"><span class="mi">🔒</span><span>Lock now<small>Requires passcode to reopen</small></span></button>
       <button onclick="resetEverything()" style="border-color:#e8c5b8"><span class="mi">🧹</span><span style="color:var(--accent)">Reset everything<small>Wipes all data and balances back to zero</small></span></button>
@@ -662,11 +663,23 @@ function dotsHTML(n){
   return h;
 }
 
+// Name for the lock screen. Kept unencrypted on this device (it shows before unlocking), and copied
+// into the encrypted data so it carries over with backups.
+const NAME_KEY='pocketbook_name';
+function getName(){ try { return localStorage.getItem(NAME_KEY)||''; } catch(e){ return ''; } }
+function putName(n){ try { if(n) localStorage.setItem(NAME_KEY, n); else localStorage.removeItem(NAME_KEY); } catch(e){} }
+async function setName(){
+  const v=prompt('Your name (shows on the lock screen):', getName()); if(v===null) return;
+  const n=v.trim().slice(0,24);
+  putName(n); state.name=n; await save(); updateNameMenu(); closeMenu();
+}
+function updateNameMenu(){ const el=document.getElementById('nameSmall'); if(el) el.textContent = getName() ? `Shows “Welcome back, ${getName()}”` : 'Shows on the lock screen'; }
+
 let lockMode='new', lockBuf='', lockStep=1, lockFirst='', kbMode=false;
 function lockScreenOn(){ return document.getElementById('lockScreen').classList.contains('on'); }
 function setLockText(){
   const t=document.getElementById('lockTitle'), d=document.getElementById('lockDesc'), w=document.getElementById('lockWarn');
-  if(lockMode==='unlock'){ t.textContent='Welcome back'; d.textContent='Enter your passcode to unlock your data.'; w.style.display='none'; }
+  if(lockMode==='unlock'){ const nm=getName(); t.textContent = nm ? `Welcome back, ${nm}` : 'Welcome back'; d.textContent='Enter your passcode to unlock your data.'; w.style.display='none'; }
   else if(lockStep===2){ t.textContent='Confirm passcode'; d.textContent='Type it once more.'; w.style.display='block'; }
   else { t.textContent='Set a passcode'; d.textContent='Pick a passcode (at least 4 digits) to encrypt your data on this device.'; w.style.display='block'; }
 }
@@ -734,6 +747,8 @@ function finishUnlock(){
   viewMonth = monthKey(); // always open on the current month
   state.month = monthKey();
   ensureDebitBaseline();
+  if(state.name && !getName()) putName(state.name); // restored from a backup on a new device
+  updateNameMenu();
   maybeRemindBackup();
   render();
 }
@@ -873,7 +888,7 @@ function importBackup(ev){
     let payload; try{ payload=JSON.parse(reader.result); }catch(e){ alert('That file isn\u2019t a valid backup.'); return; }
     const pc=await askPad({title:'Backup passcode', sub:'Enter the passcode this backup was saved with.', mode:'pin'}); if(pc===null) return;
     try{
-      const data=await decryptData(payload, pc); state=migrate(data); passcode=pc;
+      const data=await decryptData(payload, pc); state=migrate(data); passcode=pc; if(state.name && !getName()) putName(state.name); updateNameMenu();
       ensureDebitBaseline(); await save();
       document.getElementById('lockScreen').classList.remove('on'); closeMenu();
       state.month=monthKey();
