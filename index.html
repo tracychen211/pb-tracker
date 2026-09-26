@@ -29,6 +29,7 @@
     --sun: #f0b94a;           /* warm sun/terracotta accent */
     --terra: #d98a52;
     --accent: #d57b56;
+    --gold: #d9a441;
     --shadow: 0 2px 4px rgba(74,64,49,.08), 0 10px 28px rgba(74,64,49,.10);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -50,10 +51,12 @@
   .skybar svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 
   /* Lock */
-  .lock { position: fixed; inset: 0; background: var(--bg); z-index: 200; display: none; align-items: center; justify-content: center; padding: 22px;
+  .lock { position: fixed; inset: 0; background: var(--bg); z-index: 200; display: none; align-items: flex-start; justify-content: center; padding: 22px; overflow-y: auto;
     background-image: radial-gradient(circle at 20% 15%, rgba(143,196,221,.15) 0, transparent 40%), radial-gradient(circle at 1px 1px, rgba(74,64,49,.04) 1px, transparent 0); background-size: auto, 22px 22px; }
   .lock.on { display: flex; }
-  .lock-card { background: var(--card); border: 1.5px solid var(--line); border-radius: 26px; padding: 30px 24px; max-width: 380px; width: 100%; box-shadow: var(--shadow); text-align: center; position: relative; }
+  .lock-card { background: var(--card); border: 1.5px solid var(--line); border-radius: 26px; padding: 26px 22px; max-width: 380px; width: 100%; box-shadow: var(--shadow); text-align: center; position: relative; margin: auto 0; }
+  .lock-card .keypad { margin-bottom: 14px; }
+  .lock-card .keypad button { height: 54px; }
   .lock-card .sprout { margin: 0 auto 4px; display: block; }
   .lock-card h2 { font-size: 25px; margin: 6px 0 6px; color: var(--grass-deep); }
   .lock-card p { font-size: 14.5px; color: var(--ink-soft); line-height: 1.5; margin-bottom: 18px; }
@@ -239,6 +242,55 @@
   .cm-add { display: flex; gap: 8px; margin-top: 14px; }
   .cm-add input { flex: 1; padding: 12px; border: 1.5px solid var(--line); border-radius: 12px; background: var(--bg); font-family:'Nunito',sans-serif; font-size: 15px; }
   .cm-add button { background: var(--grass-deep); color: #fff; border: none; border-radius: 12px; padding: 0 18px; font-family:'Baloo 2',cursive; font-weight: 700; cursor: pointer; }
+  .cm-row .cm-emoji, .cm-add .cm-emoji { width: 42px; height: 42px; border-radius: 12px; background: var(--bg); border: 1.5px dashed var(--line); font-size: 21px; padding: 0; flex-shrink: 0; cursor: pointer; color: inherit; display: grid; place-items: center; }
+
+  /* ---------- one-time toggle ---------- */
+  .otbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--card); border: 1.5px solid var(--line); border-radius: 16px; padding: 10px 14px; margin-bottom: 14px; }
+  .otbar .ot-txt { font-size: 12.5px; color: var(--ink-soft); line-height: 1.35; min-width: 0; }
+  .otbar .ot-txt b { color: var(--ink); font-family: 'Baloo 2',cursive; font-weight: 600; font-size: 14.5px; display: block; }
+  .switch { position: relative; width: 52px; height: 30px; border-radius: 100px; background: var(--line); border: none; cursor: pointer; flex-shrink: 0; transition: background .2s; }
+  .switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(74,64,49,.3); transition: transform .2s; }
+  .switch.on { background: var(--grass-deep); }
+  .switch.on::after { transform: translateX(22px); }
+  .ot-chip { background: #ece3f2; color: #7d5a92; }
+
+  /* ---------- number pad ---------- */
+  .overlay.pad-overlay { z-index: 300; }
+  .pad-display { font-family: 'Baloo 2',cursive; font-size: 40px; font-weight: 700; text-align: center; color: var(--grass-deep); background: var(--bg); border: 1.5px solid var(--line); border-radius: 18px; padding: 8px 10px; margin-bottom: 14px; min-height: 70px; display: flex; align-items: center; justify-content: center; }
+  .pad-display.empty { color: var(--ink-soft); opacity: .45; }
+  .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .keypad button { background: var(--bg); border: 1.5px solid var(--line); border-radius: 16px; height: 58px; font-family: 'Baloo 2',cursive; font-size: 25px; font-weight: 600; color: var(--ink); cursor: pointer; box-shadow: 0 3px 0 var(--line); touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+  .keypad button:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--line); background: var(--bg2); }
+  .keypad button.k-fn { color: var(--ink-soft); font-size: 22px; }
+  .keypad button.k-blank { visibility: hidden; }
+  .pin-dots { display: flex; justify-content: center; gap: 14px; margin: 4px 0 14px; min-height: 18px; }
+  .pin-dots i { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--grass-deep); display: block; transition: background .12s; }
+  .pin-dots i.f { background: var(--grass-deep); }
+  .pad-display .pin-dots { margin: 0; }
+  .amt-tap { cursor: pointer; caret-color: transparent; }
+  .kb-link { background: none; border: none; color: var(--ink-soft); font-size: 13px; font-family: 'Nunito',sans-serif; text-decoration: underline; cursor: pointer; margin-top: 12px; }
+
+  /* ---------- emoji picker ---------- */
+  .emoji-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 14px; }
+  .emoji-grid button { background: var(--bg); border: 1.5px solid var(--line); border-radius: 14px; height: 50px; font-size: 24px; cursor: pointer; padding: 0; }
+  .emoji-grid button.act { border-color: var(--grass-deep); background: var(--sage); }
+
+  /* ---------- biggest spending ---------- */
+  .big-card { background: var(--card); border: 1.5px solid var(--line); border-radius: 22px; padding: 14px 18px; box-shadow: var(--shadow); margin-bottom: 14px; }
+  .big-card h4 { font-family: 'Baloo 2',cursive; font-size: 12.5px; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .05em; margin: 4px 0 2px; }
+  .big-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1.5px dotted var(--line); font-size: 14px; }
+  .big-row:last-child { border-bottom: none; }
+  .big-row .br-rank { font-family: 'Baloo 2',cursive; font-weight: 700; color: var(--terra); width: 16px; flex-shrink: 0; text-align: center; }
+  .big-row .br-ic { font-size: 18px; flex-shrink: 0; }
+  .big-row .br-mid { flex: 1; min-width: 0; }
+  .big-row .br-mid .n { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .big-row .br-mid .s { font-size: 12px; color: var(--ink-soft); }
+  .big-row .br-amt { font-family: 'Baloo 2',cursive; font-weight: 700; font-size: 16px; flex-shrink: 0; }
+  .big-split { height: 1.5px; background: var(--line); margin: 8px 0 10px; }
+  .legend .lg .pc { font-size: 11.5px; color: var(--ink-soft); min-width: 30px; text-align: right; }
+  .tx-amt.pay { color: var(--sky-deep); }
+  .tx-amt.move { color: var(--ink-soft); }
+  .panel .small b { font-weight: 700; }
 </style>
 </head>
 <body>
@@ -255,10 +307,13 @@
     </svg>
     <h2 id="lockTitle">Set a passcode</h2>
     <p id="lockDesc">Pick a passcode to encrypt your data on this device.</p>
+    <div class="pin-dots" id="lockDots"></div>
     <div class="lock-err" id="lockErr"></div>
-    <input type="password" id="lockPass" placeholder="Passcode" autocomplete="off">
+    <div class="keypad" id="lockKeys"></div>
+    <input type="password" id="lockPass" placeholder="Passcode" autocomplete="off" style="display:none">
     <input type="password" id="lockPass2" placeholder="Confirm passcode" autocomplete="off" style="display:none">
     <button class="lbtn" onclick="lockSubmit()">Continue</button>
+    <button class="kb-link" id="kbToggle" onclick="toggleLockKeyboard()">Use keyboard instead</button>
     <div class="lock-warn" id="lockWarn">🌱 There's no password reset. Forget this passcode and your saved data can't be recovered — that's what keeps it private. Export a backup regularly.</div>
     <div class="lock-import" id="lockImport">Have an encrypted backup file? <button onclick="document.getElementById('importFile').click()">Import it</button></div>
   </div>
@@ -299,6 +354,11 @@
   <button class="mn-arrow" onclick="navMonth(-1)" title="Previous month">‹</button>
   <div class="mn-label" id="mnLabel" onclick="jumpToCurrent()">June 2026</div>
   <button class="mn-arrow" id="mnNext" onclick="navMonth(1)" title="Next month">›</button>
+</div>
+
+<div class="otbar">
+  <div class="ot-txt"><b>🎓 Include one-time costs</b><span id="otSub">Tuition, dues &amp; textbooks stay out of your totals</span></div>
+  <button class="switch" id="otSwitch" onclick="toggleOneTime()" aria-label="Include one-time costs"></button>
 </div>
 
 <div class="backup-banner" id="backupBanner" style="display:none">
@@ -352,16 +412,19 @@
 <div class="sec-head"><h2 id="chartTitle">🍃 Where it went</h2></div>
 <div class="chart-card"><div id="chartContent"></div></div>
 
+<div class="sec-head"><h2 id="bigTitle">🔍 Biggest spending</h2></div>
+<div class="big-card"><div id="bigContent"></div></div>
+
 <div class="sec-head"><h2>🧺 Budgets</h2><button class="edit" onclick="openCatManager()">Categories</button></div>
 <div id="cats" class="cats-grid"></div>
 
 <!-- THREE COZY PANELS -->
 <div class="panels">
   <div class="panel sage">
-    <button class="editgoal" onclick="setSavingsGoal()">edit</button>
-    <div class="ph">🌸 Savings goal</div>
+    <button class="editgoal" onclick="openGrowth()">edit</button>
+    <div class="ph">🌸 Checking growth</div>
     <div class="big" id="panelSaveAmt">$0</div>
-    <div class="small" id="panelSaveSub">Set a goal to start saving</div>
+    <div class="small" id="panelSaveSub">this month</div>
     <div class="pbar"><i id="panelSaveBar" style="width:0%;background:#5f8541"></i></div>
     <svg class="corner" width="34" height="34" viewBox="0 0 34 34"><circle cx="17" cy="24" r="8" fill="#5f8541" opacity=".25"/><path d="M17 24 V12" stroke="#5f8541" stroke-width="2.5" stroke-linecap="round"/><path d="M17 16 C12 16 9 13 9 9 C14 9 17 12 17 16Z" fill="#5f8541" opacity=".4"/></svg>
   </div>
@@ -388,9 +451,9 @@
 <div class="overlay" id="addOverlay">
   <div class="sheet">
     <h3 id="addTitle">Add expense</h3>
-    <div class="field"><label>Amount</label><input type="number" inputmode="decimal" id="inAmt" class="amount-big" placeholder="0.00"></div>
+    <div class="field"><label>Amount</label><input type="text" readonly inputmode="none" id="inAmt" class="amount-big amt-tap" placeholder="$0.00" onclick="padInto('inAmt','Amount')"></div>
     <div class="field"><label>What was it?</label><input type="text" id="inNote" placeholder="e.g. lunch with friends"></div>
-    <div class="field"><label>Got paid back? (Venmo/Zelle) — optional</label><input type="number" inputmode="decimal" id="inReimb" placeholder="0.00"></div>
+    <div class="field"><label>Got paid back? (Venmo/Zelle) — optional</label><input type="text" readonly inputmode="none" id="inReimb" class="amt-tap" placeholder="$0.00" onclick="padInto('inReimb','Paid back')"></div>
     <div class="field"><label>Category</label><select id="inCat"></select></div>
     <div class="field"><label>Paid with</label>
       <div class="seg" id="paySeg">
@@ -408,9 +471,9 @@
 <div class="overlay" id="catOverlay">
   <div class="sheet">
     <h3>Categories</h3>
-    <div class="desc">Tap a name to rename, $ to set its limit, or ✕ to remove. Removed categories' past spending shows as "Other".</div>
+    <div class="desc">Tap the emoji to change it, the name to rename, $ to set its limit, or ✕ to remove. Removed categories' past spending shows as "Other".</div>
     <div id="cmList"></div>
-    <div class="cm-add"><input type="text" id="cmNew" placeholder="New category name"><button onclick="addCategory()">Add</button></div>
+    <div class="cm-add"><button class="cm-emoji" id="cmNewEmoji" onclick="openEmojiPicker('new')" title="Pick an emoji">🌷</button><input type="text" id="cmNew" placeholder="New category name"><button onclick="addCategory()">Add</button></div>
     <div class="sheet-btns"><button class="btn-ghost" style="flex:1" onclick="closeCatManager()">Done</button></div>
   </div>
 </div>
@@ -422,12 +485,47 @@
     <div class="desc">Your data is encrypted on this device with your passcode. Export a backup to move it to another device.</div>
     <div class="menu-list">
       <button onclick="exportBackup()"><span class="mi">⬇️</span><span>Export encrypted backup<small>Downloads a .pbk file for another device</small></span></button>
+      <button onclick="exportCSV()"><span class="mi">📊</span><span>Export to CSV<small>All transactions as a spreadsheet · not encrypted</small></span></button>
       <button onclick="document.getElementById('importFile').click()"><span class="mi">⬆️</span><span>Import a backup<small>Replaces current data with a backup file</small></span></button>
       <button onclick="changePass()"><span class="mi">🔑</span><span>Change passcode<small>Re-encrypts your data with a new passcode</small></span></button>
       <button onclick="lockNow()"><span class="mi">🔒</span><span>Lock now<small>Requires passcode to reopen</small></span></button>
       <button onclick="resetEverything()" style="border-color:#e8c5b8"><span class="mi">🧹</span><span style="color:var(--accent)">Reset everything<small>Wipes all data and balances back to zero</small></span></button>
     </div>
     <div class="sheet-btns"><button class="btn-ghost" style="flex:1" onclick="closeMenu()">Close</button></div>
+  </div>
+</div>
+
+<!-- CHECKING GROWTH SETTINGS -->
+<div class="overlay" id="growthOverlay">
+  <div class="sheet">
+    <h3>Checking growth</h3>
+    <div class="desc">Compares your debit balance now to where it started this month.</div>
+    <div class="menu-list">
+      <button onclick="setGrowthGoal()"><span class="mi">🎯</span><span>Monthly growth goal<small id="ggSmall"></small></span></button>
+      <button onclick="setDebitStart()"><span class="mi">🏁</span><span>Starting balance this month<small id="gsSmall"></small></span></button>
+    </div>
+    <div class="sheet-btns"><button class="btn-ghost" style="flex:1" onclick="closeOv('growthOverlay')">Done</button></div>
+  </div>
+</div>
+
+<!-- EMOJI PICKER -->
+<div class="overlay" id="emojiOverlay">
+  <div class="sheet">
+    <h3>Pick an emoji</h3>
+    <div class="emoji-grid" id="emojiGrid"></div>
+    <div class="cm-add" style="margin-top:0"><input type="text" id="emojiCustom" placeholder="Or type any emoji"><button onclick="useCustomEmoji()">Use</button></div>
+    <div class="sheet-btns"><button class="btn-ghost" style="flex:1" onclick="closeOv('emojiOverlay')">Cancel</button></div>
+  </div>
+</div>
+
+<!-- NUMBER PAD (sits above everything, including the lock screen) -->
+<div class="overlay pad-overlay" id="padOverlay">
+  <div class="sheet">
+    <h3 id="padTitle">Amount</h3>
+    <div class="desc" id="padSub" style="display:none"></div>
+    <div class="pad-display empty" id="padDisplay">$0</div>
+    <div class="keypad" id="padKeys"></div>
+    <div class="sheet-btns"><button class="btn-ghost" onclick="padCancel()">Cancel</button><button class="btn-primary" onclick="padDone()">Done</button></div>
   </div>
 </div>
 
@@ -465,11 +563,19 @@ const STORE_KEY = 'pocketbook_enc_v2';
 let state = null, passcode = null, period = 'month';
 let viewMonth = monthKey(); // which month the dashboard is showing
 
+const EMOJIS = ['🛒','🍜','☕','🍵','🍣','🍕','🧋','🍰','🎉','🎬','🎤','🎳','🧾','💡','📱','💻','🚌','🚇','🚕','✈️','🐷','💰','🎓','📚','✏️','🏠','💊','🧴','💅','👗','🛍️','🎁','🌷','🌿','🐾','🎵','🎮','🏋️','🧺','🌸','🥗','🎯'];
+const PAY_NAMES = { cash:'Cash', debit:'Debit', card:'Credit card' };
+
 function freshState(){
   return { income:0, debit:0, wallet:0, card:0, weekly:675,
     cats:DEFAULT_CATS.map(c=>({...c})), tx:[], month:monthKey(), lastMonthSpent:0, savingsGoal:0, lastBackup:null, lastReminderMonth:null };
 }
-function monthKey(d){ return (d||new Date()).toISOString().slice(0,7); }
+function p2(n){ return String(n).padStart(2,'0'); }
+// Local time (not UTC) so an 9pm purchase on the 30th doesn't land in next month
+function monthKey(d){ d=d||new Date(); return d.getFullYear()+'-'+p2(d.getMonth()+1); }
+function escHtml(s){ return String(s??'').replace(/[&<>"']/g, ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
+function isOneTime(t){ const c=state.cats.find(x=>x.id===t.cat); return !!(c && c.oneTime); }
+function counts(t){ return state.showOneTime || !isOneTime(t); } // does this expense count toward totals right now?
 function monthLabelFor(mk){ const [y,m]=mk.split('-').map(Number); return new Date(y,m-1,1).toLocaleDateString('en-US',{month:'long',year:'numeric'}); }
 function monthLabel(){ return monthLabelFor(viewMonth); }
 function shiftMonth(mk, delta){ const [y,m]=mk.split('-').map(Number); const d=new Date(y, m-1+delta, 1); return monthKey(d); }
@@ -501,55 +607,222 @@ function migrate(data){
   if(data.savingsGoal===undefined) data.savingsGoal = 0;
   if(data.lastBackup===undefined) data.lastBackup = null;
   if(data.lastReminderMonth===undefined) data.lastReminderMonth = null;
+  // one-time costs (tuition, dues, textbooks): one category, no limit, hidden from totals by default
+  if(!data.oneTimeInit){
+    if(!data.cats.some(c=>c.oneTime)){
+      const m = data.cats.find(c=>/one[\s-]?time|school/i.test(c.name));
+      if(m){ m.oneTime=true; m.limit=0; }
+      else data.cats.push({id:'onetime', name:'School / one-time', color:'#a07ab0', icon:'🎓', limit:0, oneTime:true});
+    }
+    data.oneTimeInit = true;
+  }
+  if(data.showOneTime===undefined) data.showOneTime = false;
+  // checking growth replaces the old savings goal
+  if(data.growthGoal===undefined) data.growthGoal = 240;
+  if(!data.debitStart) data.debitStart = {};
+  // default paycheck = most recent one logged
+  if(data.weekly===675){ const inc=(data.tx||[]).filter(t=>t.type==='income').sort((a,b)=>b.ts-a.ts)[0]; if(inc) data.weekly=inc.amt; }
   return data;
 }
 
-let lockMode='new';
+// Debit balance at the start of a month, worked backwards from logged activity.
+function estimateDebitStart(mk){
+  let delta=0;
+  state.tx.filter(t=>monthKey(new Date(t.ts))===mk).forEach(t=>{
+    if(t.type==='income') delta+=t.amt;
+    else if(t.type==='exp'){ if(t.pay==='debit') delta-=t.amt; delta+=(t.reimb||0); }
+    else if(t.type==='payoff' || t.type==='withdraw') delta-=t.amt;
+  });
+  return r2(state.debit - delta);
+}
+function ensureDebitBaseline(){
+  const mk=monthKey(); if(state.debitStart[mk]) return;
+  // The first month is an estimate: card payoffs and withdrawals weren't logged before this update.
+  const first = Object.keys(state.debitStart).length===0;
+  state.debitStart[mk] = { amt: estimateDebitStart(mk), est: first };
+  save();
+}
+
+// ---------- keypads ----------
+function keypadHTML(fn, withDot){
+  const ks=['1','2','3','4','5','6','7','8','9', withDot?'.':'', '0','del'];
+  return ks.map(k=> k==='' ? '<button type="button" class="k-blank" tabindex="-1"></button>'
+    : `<button type="button" class="${k==='del'?'k-fn':''}" onclick="${fn}('${k}')" aria-label="${k==='del'?'Delete':k}">${k==='del'?'⌫':k}</button>`).join('');
+}
+function dotsHTML(n){ const slots=Math.max(4,n); let h=''; for(let i=0;i<slots;i++) h+=`<i class="${i<n?'f':''}"></i>`; return h; }
+
+let lockMode='new', lockBuf='', lockStep=1, lockFirst='', kbMode=false;
+function lockScreenOn(){ return document.getElementById('lockScreen').classList.contains('on'); }
+function setLockText(){
+  const t=document.getElementById('lockTitle'), d=document.getElementById('lockDesc'), w=document.getElementById('lockWarn');
+  if(lockMode==='unlock'){ t.textContent='Welcome back'; d.textContent='Enter your passcode to unlock your data.'; w.style.display='none'; }
+  else if(lockStep===2){ t.textContent='Confirm passcode'; d.textContent='Type it once more.'; w.style.display='block'; }
+  else { t.textContent='Set a passcode'; d.textContent='Pick a passcode (at least 4 digits) to encrypt your data on this device.'; w.style.display='block'; }
+}
+function applyLockMode(){
+  document.getElementById('lockDots').style.display = kbMode?'none':'flex';
+  document.getElementById('lockKeys').style.display = kbMode?'none':'grid';
+  document.getElementById('lockPass').style.display = kbMode?'block':'none';
+  document.getElementById('lockPass2').style.display = (kbMode && lockMode==='new')?'block':'none';
+  document.getElementById('kbToggle').textContent = kbMode ? 'Use number pad instead' : 'Use keyboard instead';
+}
+function toggleLockKeyboard(){ kbMode=!kbMode; lockBuf=''; renderLockDots(); applyLockMode(); if(kbMode) setTimeout(()=>document.getElementById('lockPass').focus(),50); }
+function renderLockDots(){ document.getElementById('lockDots').innerHTML = dotsHTML(lockBuf.length); }
+function lockKey(k){
+  document.getElementById('lockErr').textContent='';
+  if(k==='del') lockBuf=lockBuf.slice(0,-1);
+  else if(lockBuf.length<12) lockBuf+=k;
+  renderLockDots();
+  // Unlock as soon as the right passcode is typed — no need to hit Continue
+  if(lockMode==='unlock' && lockBuf.length>=4) tryUnlock(lockBuf, true);
+}
 function initLock(){
   const has = localStorage.getItem(STORE_KEY);
   lockMode = has ? 'unlock' : 'new';
-  const t=document.getElementById('lockTitle'), d=document.getElementById('lockDesc'), p2=document.getElementById('lockPass2'), w=document.getElementById('lockWarn');
-  if(lockMode==='unlock'){ t.textContent='Welcome back'; d.textContent='Enter your passcode to unlock your data.'; p2.style.display='none'; w.style.display='none'; }
-  else { t.textContent='Set a passcode'; d.textContent='Pick a passcode to encrypt your data on this device.'; p2.style.display='block'; w.style.display='block'; }
+  lockBuf=''; lockStep=1; lockFirst='';
+  document.getElementById('lockErr').textContent='';
+  setLockText(); renderLockDots(); applyLockMode();
   document.getElementById('lockScreen').classList.add('on');
+}
+async function tryUnlock(pc, quiet){
+  try {
+    const data=await decryptData(JSON.parse(localStorage.getItem(STORE_KEY)), pc);
+    if(!lockScreenOn()) return true;              // already unlocked by another attempt
+    if(quiet && !kbMode && lockBuf!==pc) return false; // they kept typing; ignore this stale attempt
+    passcode=pc; state=migrate(data); finishUnlock(); return true;
+  } catch(e){ return false; }
 }
 async function lockSubmit(){
   const errEl=document.getElementById('lockErr'); errEl.textContent='';
-  const p1=document.getElementById('lockPass').value;
-  if(!p1){ errEl.textContent='Enter a passcode.'; return; }
+  if(kbMode){
+    const p1=document.getElementById('lockPass').value;
+    if(!p1){ errEl.textContent='Enter a passcode.'; return; }
+    if(lockMode==='new'){
+      const pc2=document.getElementById('lockPass2').value;
+      if(p1.length<4){ errEl.textContent='Use at least 4 characters.'; return; }
+      if(p1!==pc2){ errEl.textContent="Passcodes don't match."; return; }
+      passcode=p1; state=migrate(freshState()); await save(); finishUnlock();
+    } else if(!(await tryUnlock(p1))){ errEl.textContent='Wrong passcode. Try again.'; document.getElementById('lockPass').value=''; }
+    return;
+  }
   if(lockMode==='new'){
-    const p2=document.getElementById('lockPass2').value;
-    if(p1.length<4){ errEl.textContent='Use at least 4 characters.'; return; }
-    if(p1!==p2){ errEl.textContent="Passcodes don't match."; return; }
-    passcode=p1; state=freshState(); await save(); finishUnlock();
+    if(lockStep===1){
+      if(lockBuf.length<4){ errEl.textContent='Use at least 4 digits.'; return; }
+      lockFirst=lockBuf; lockBuf=''; lockStep=2; setLockText(); renderLockDots(); return;
+    }
+    if(lockBuf!==lockFirst){ errEl.textContent="Passcodes don't match. Start again."; lockBuf=''; lockFirst=''; lockStep=1; setLockText(); renderLockDots(); return; }
+    passcode=lockBuf; state=migrate(freshState()); await save(); finishUnlock();
   } else {
-    try { const data=await decryptData(JSON.parse(localStorage.getItem(STORE_KEY)), p1); passcode=p1; state=migrate(data); finishUnlock(); }
-    catch(e){ errEl.textContent='Wrong passcode. Try again.'; document.getElementById('lockPass').value=''; }
+    if(!lockBuf){ errEl.textContent='Enter your passcode.'; return; }
+    if(!(await tryUnlock(lockBuf))){ errEl.textContent='Wrong passcode. Try again.'; lockBuf=''; renderLockDots(); }
   }
 }
 function finishUnlock(){
   document.getElementById('lockScreen').classList.remove('on');
   document.getElementById('lockPass').value=''; document.getElementById('lockPass2').value='';
+  lockBuf=''; lockFirst=''; lockStep=1; renderLockDots();
   viewMonth = monthKey(); // always open on the current month
   state.month = monthKey();
+  ensureDebitBaseline();
   maybeRemindBackup();
   render();
 }
+
+// ---------- pop-up number pad (amounts + passcodes) ----------
+let padState=null;
+function askPad(opts){
+  return new Promise(res=>{
+    const mode=opts.mode||'amount';
+    let init='';
+    if(mode==='amount' && typeof opts.initial==='number' && opts.initial>0) init=String(r2(opts.initial));
+    else if(mode==='amount' && typeof opts.initial==='string') init=opts.initial.replace(/[^0-9.]/g,'');
+    padState={ mode, buf:init, res };
+    document.getElementById('padTitle').textContent=opts.title||'Amount';
+    const sub=document.getElementById('padSub');
+    sub.textContent=opts.sub||''; sub.style.display=opts.sub?'block':'none';
+    document.getElementById('padKeys').innerHTML=keypadHTML('padKey', mode==='amount');
+    renderPad();
+    document.getElementById('padOverlay').classList.add('on');
+    if(document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  });
+}
+function renderPad(){
+  const el=document.getElementById('padDisplay'), b=padState.buf;
+  if(padState.mode==='pin'){ el.classList.remove('empty'); el.innerHTML=`<div class="pin-dots">${dotsHTML(b.length)}</div>`; return; }
+  el.classList.toggle('empty', !b);
+  if(!b){ el.textContent='$0'; return; }
+  const [whole, dec] = b.split('.');
+  el.textContent = '$' + Number(whole||'0').toLocaleString('en-US') + (dec!==undefined ? '.'+dec : '');
+}
+function padKey(k){
+  if(!padState) return;
+  let b=padState.buf;
+  if(k==='del') b=b.slice(0,-1);
+  else if(padState.mode==='pin'){ if(b.length<12) b+=k; }
+  else if(k==='.'){ if(b.includes('.')) return; b=(b||'0')+'.'; }
+  else {
+    const dp=b.indexOf('.');
+    if(dp>=0 && b.length-dp>2) return;             // max 2 decimals
+    if(b.replace('.','').length>=8) return;        // up to $99,999,999
+    b = (b==='0' ? '' : b) + k;
+  }
+  padState.buf=b; renderPad();
+}
+function closePad(val){ const p=padState; padState=null; document.getElementById('padOverlay').classList.remove('on'); if(p) p.res(val); }
+function padDone(){ if(!padState) return; let b=padState.buf; if(padState.mode==='amount') b=b.replace(/\.$/,''); closePad(b); }
+function padCancel(){ closePad(null); }
+async function askAmount(title, initial, sub){
+  const s=await askPad({title, sub, mode:'amount', initial});
+  if(s===null) return null;
+  return r2(parseFloat(s)||0);
+}
+async function padInto(id, title){
+  const el=document.getElementById(id);
+  const v=await askPad({title, mode:'amount', initial: el.value});
+  if(v!==null) el.value = v && parseFloat(v)>0 ? '$'+v : '';
+}
+function readMoney(id){ return parseFloat(document.getElementById(id).value.replace(/[^0-9.]/g,'')) || 0; }
+function closeOv(id){ document.getElementById(id).classList.remove('on'); }
 function lockNow(){ passcode=null; state=null; closeMenu(); initLock(); }
 async function resetEverything(){
   if(!confirm('Reset EVERYTHING? This permanently wipes all transactions and sets every balance to zero. Your categories stay. This cannot be undone.')) return;
   if(!confirm('Are you absolutely sure? Consider exporting a backup first if you might want this data later.')) return;
-  state = freshState();
+  state = migrate(freshState());
   await save();
   closeMenu();
   render();
   alert('All set \u2014 everything is back to zero. Set your balances with the Set buttons when you\u2019re ready.');
 }
 async function changePass(){
-  const np=prompt('New passcode (at least 4 characters):'); if(np===null) return;
-  if(np.length<4){ alert('Too short.'); return; }
-  if(prompt('Confirm new passcode:')!==np){ alert("Passcodes don't match."); return; }
-  passcode=np; await save(); alert('Passcode changed.'); closeMenu();
+  closeMenu();
+  const np=await askPad({title:'New passcode', sub:'At least 4 digits.', mode:'pin'}); if(np===null) return;
+  if(np.length<4){ alert('Too short — use at least 4 digits.'); return; }
+  const c=await askPad({title:'Confirm new passcode', mode:'pin'}); if(c===null) return;
+  if(c!==np){ alert("Passcodes don't match."); return; }
+  passcode=np; await save(); alert('Passcode changed.');
+}
+
+function downloadBlob(blob, name){
+  const url=URL.createObjectURL(blob); const a=document.createElement('a');
+  a.href=url; a.download=name; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+function localDate(ts){ const d=new Date(ts); return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`; }
+function exportCSV(){
+  if(!state) return;
+  const esc=v=>{ const s=String(v??''); return /[",\r\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; };
+  const money=n=>(Number(n)||0).toFixed(2);
+  const head=['Date','Time','Type','Description','Category','One-time','Paid with','Amount','Paid back','Your share'];
+  const other={ income:['Income','Paycheck','Debit'], payoff:['Card payoff','Paid credit card from debit','Debit'], withdraw:['Cash withdrawal','Debit to wallet','Debit'] };
+  const rows=[...state.tx].sort((a,b)=>a.ts-b.ts).map(t=>{
+    const date=localDate(t.ts), time=new Date(t.ts).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+    if(t.type==='exp'){ const c=catMeta(t.cat); return [date,time,'Expense',t.note||'',c.name,c.oneTime?'Yes':'No',PAY_NAMES[t.pay]||t.pay,money(t.amt),money(t.reimb),money(netAmt(t))]; }
+    const m=other[t.type]||[t.type,'',''];
+    return [date,time,m[0],m[1],'','',m[2],money(t.amt),'',''];
+  });
+  const csv='﻿'+[head,...rows].map(r=>r.map(esc).join(',')).join('\r\n');
+  downloadBlob(new Blob([csv],{type:'text/csv;charset=utf-8'}), `pocketbook-transactions-${localDate(Date.now())}.csv`);
+  closeMenu();
 }
 
 async function exportBackup(){
@@ -587,9 +860,10 @@ function importBackup(ev){
   const reader=new FileReader();
   reader.onload=async()=>{
     let payload; try{ payload=JSON.parse(reader.result); }catch(e){ alert('That file isn\u2019t a valid backup.'); return; }
-    const pc=prompt('Enter the passcode this backup was saved with:'); if(pc===null) return;
+    const pc=await askPad({title:'Backup passcode', sub:'Enter the passcode this backup was saved with.', mode:'pin'}); if(pc===null) return;
     try{
-      const data=await decryptData(payload, pc); state=migrate(data); passcode=pc; await save();
+      const data=await decryptData(payload, pc); state=migrate(data); passcode=pc;
+      ensureDebitBaseline(); await save();
       document.getElementById('lockScreen').classList.remove('on'); closeMenu();
       state.month=monthKey();
       render(); alert('Backup restored.');
@@ -637,7 +911,7 @@ function openAdd(){
   fillCatSelect(document.getElementById('inCat'));
   payMethod='cash'; document.querySelectorAll('#paySeg button').forEach(b=>b.classList.toggle('act', b.dataset.pay==='cash'));
   document.getElementById('addOverlay').classList.add('on');
-  setTimeout(()=>document.getElementById('inAmt').focus(),100);
+  setTimeout(()=>padInto('inAmt','Amount'),150); // number pad pops up right away
 }
 function openEdit(id){
   const t=state.tx.find(x=>x.id===id); if(!t || t.type!=='exp') return;
@@ -645,7 +919,7 @@ function openEdit(id){
   document.getElementById('addTitle').textContent='Edit expense';
   document.getElementById('addSaveBtn').textContent='Save';
   document.getElementById('addDeleteBtn').style.display='block';
-  document.getElementById('inAmt').value=t.amt; document.getElementById('inNote').value=t.note||''; document.getElementById('inReimb').value=t.reimb||'';
+  document.getElementById('inAmt').value='$'+t.amt; document.getElementById('inNote').value=t.note||''; document.getElementById('inReimb').value=t.reimb?'$'+t.reimb:'';
   fillCatSelect(document.getElementById('inCat')); document.getElementById('inCat').value=t.cat;
   payMethod=t.pay; document.querySelectorAll('#paySeg button').forEach(b=>b.classList.toggle('act', b.dataset.pay===t.pay));
   document.getElementById('addOverlay').classList.add('on');
@@ -661,11 +935,11 @@ function applyReimb(reimb, sign){
   if(reimb>0) state.debit = r2(state.debit + sign*reimb);
 }
 async function saveExpense(){
-  const amt=parseFloat(document.getElementById('inAmt').value);
+  const amt=readMoney('inAmt');
   if(!amt||amt<=0){ alert('Enter an amount'); return; }
   const cat=document.getElementById('inCat').value;
   const note=document.getElementById('inNote').value.trim();
-  let reimb=parseFloat(document.getElementById('inReimb').value)||0;
+  let reimb=readMoney('inReimb');
   if(reimb<0) reimb=0;
   if(reimb>amt){ alert("Paid-back amount can't be more than the total."); return; }
   if(editingId){
@@ -689,30 +963,60 @@ async function deleteEditing(){
   await save(); closeAdd(); render();
 }
 
+function newId(){ let id=Date.now(); while(state.tx.some(t=>t.id===id)) id++; return id; }
 async function addPaycheck(){
-  const v=prompt('Paycheck amount to deposit into debit ($):', state.weekly); if(v===null) return;
-  const n=parseFloat(v); if(isNaN(n)){ alert('Enter a number'); return; }
-  state.debit=r2(state.debit+n);
-  state.tx.unshift({ id:Date.now(), amt:n, type:'income', ts:Date.now() });
+  const n=await askAmount('Paycheck', state.weekly, 'Deposits into debit.'); if(n===null||n<=0) return;
+  state.debit=r2(state.debit+n); state.weekly=n;
+  state.tx.unshift({ id:newId(), amt:n, type:'income', ts:Date.now() });
   await save(); render();
 }
-async function setDebit(){ const v=prompt('Set debit balance ($):', state.debit); if(v===null) return; const n=parseFloat(v); if(isNaN(n)){alert('Enter a number');return;} state.debit=n; await save(); render(); }
-async function withdrawCash(){ const v=prompt('Withdraw how much from debit into your wallet? ($)'); if(v===null) return; const n=parseFloat(v); if(isNaN(n)){alert('Enter a number');return;} state.wallet=r2(state.wallet+n); state.debit=r2(state.debit-n); await save(); render(); }
-async function addCashToWallet(){ const v=prompt('Add cash to wallet (gift, tip, etc. \u2014 does NOT touch debit) ($)'); if(v===null) return; const n=parseFloat(v); if(isNaN(n)){alert('Enter a number');return;} state.wallet=r2(state.wallet+n); await save(); render(); }
-async function setWallet(){ const v=prompt('Set cash on hand ($):', state.wallet); if(v===null) return; const n=parseFloat(v); if(isNaN(n)){alert('Enter a number');return;} state.wallet=n; await save(); render(); }
-async function setCard(){ const v=prompt('Set credit card balance owed ($):', state.card); if(v===null) return; const n=parseFloat(v); if(isNaN(n)||n<0){alert('Enter a number (0 or more)');return;} state.card=r2(n); await save(); render(); }
+async function setDebit(){ const n=await askAmount('Set debit balance', state.debit); if(n===null) return; state.debit=n; await save(); render(); }
+async function withdrawCash(){
+  const n=await askAmount('Withdraw cash', null, 'Moves money from debit into your wallet.'); if(!n) return;
+  state.wallet=r2(state.wallet+n); state.debit=r2(state.debit-n);
+  state.tx.unshift({ id:newId(), amt:n, type:'withdraw', ts:Date.now() });
+  await save(); render();
+}
+async function addCashToWallet(){ const n=await askAmount('Add cash to wallet', null, 'Gift, tip, etc. \u2014 doesn\u2019t touch debit.'); if(!n) return; state.wallet=r2(state.wallet+n); await save(); render(); }
+async function setWallet(){ const n=await askAmount('Set cash on hand', state.wallet); if(n===null) return; state.wallet=n; await save(); render(); }
+async function setCard(){ const n=await askAmount('Set card balance owed', state.card); if(n===null) return; state.card=n; await save(); render(); }
 async function payCard(){
   if(state.card<=0) return;
-  const v=prompt('Pay how much of the card from debit? ($)', state.card); if(v===null) return;
-  const n=parseFloat(v); if(isNaN(n)||n<=0){alert('Enter a number');return;}
-  const pay=Math.min(n,state.card); state.card=r2(state.card-pay); state.debit=r2(state.debit-pay);
+  const n=await askAmount('Pay off card', state.card, 'Pulls from debit. Doesn\u2019t count as spending \u2014 the purchases already did.'); if(!n) return;
+  const pay=r2(Math.min(n,state.card)); state.card=r2(state.card-pay); state.debit=r2(state.debit-pay);
+  state.tx.unshift({ id:newId(), amt:pay, type:'payoff', ts:Date.now() });
   await save(); render();
 }
-async function setSavingsGoal(){
-  const v=prompt('Savings goal for this summer ($):', state.savingsGoal||''); if(v===null) return;
-  const n=parseFloat(v); if(isNaN(n)){ alert('Enter a number'); return; }
-  state.savingsGoal=n; await save(); render();
+// Undo a paycheck, card payoff, or withdrawal (reverses its effect on balances)
+async function undoTx(id){
+  const t=state.tx.find(x=>x.id===id); if(!t) return;
+  const msg={ income:`Remove this $${fmt(t.amt)} paycheck? It comes back out of debit.`,
+    payoff:`Undo this $${fmt(t.amt)} card payoff? It goes back on the card and back into debit.`,
+    withdraw:`Undo this $${fmt(t.amt)} withdrawal? It moves from your wallet back to debit.` }[t.type];
+  if(!msg || !confirm(msg)) return;
+  if(t.type==='income') state.debit=r2(state.debit-t.amt);
+  else if(t.type==='payoff'){ state.card=r2(state.card+t.amt); state.debit=r2(state.debit+t.amt); }
+  else if(t.type==='withdraw'){ state.wallet=r2(state.wallet-t.amt); state.debit=r2(state.debit+t.amt); }
+  state.tx=state.tx.filter(x=>x.id!==id); await save(); render();
 }
+
+// ---------- checking growth ----------
+function openGrowth(){ updateGrowthSheet(); document.getElementById('growthOverlay').classList.add('on'); }
+function updateGrowthSheet(){
+  const g=state.growthGoal||0, base=state.debitStart[monthKey()];
+  document.getElementById('ggSmall').textContent = g>0 ? `+$${fmt(g)} a month (about $${fmt(Math.round(g*12/52))}/week)` : 'No goal set';
+  document.getElementById('gsSmall').textContent = base ? `$${fmt(base.amt)}${base.est?' \u00b7 estimated, tap to fix':''}` : '\u2014';
+}
+async function setGrowthGoal(){
+  const n=await askAmount('Monthly growth goal', state.growthGoal, 'How much you want checking to grow each month.'); if(n===null) return;
+  state.growthGoal=n; await save(); updateGrowthSheet(); render();
+}
+async function setDebitStart(){
+  const mk=monthKey(), base=state.debitStart[mk];
+  const n=await askAmount('Starting balance', base?base.amt:state.debit, `Your debit balance on ${monthLabelFor(mk).split(' ')[0]} 1.`); if(n===null) return;
+  state.debitStart[mk]={ amt:n, est:false }; await save(); updateGrowthSheet(); render();
+}
+async function toggleOneTime(){ state.showOneTime=!state.showOneTime; await save(); render(); }
 
 function openCatManager(){ renderCatManager(); document.getElementById('catOverlay').classList.add('on'); }
 function closeCatManager(){ document.getElementById('catOverlay').classList.remove('on'); }
@@ -720,12 +1024,34 @@ function renderCatManager(){
   const el=document.getElementById('cmList');
   el.innerHTML = state.cats.map(c=>`
     <div class="cm-row"><span class="dot" style="background:${c.color}"></span>
-      <div class="cm-name" onclick="renameCategory('${c.id}')">${c.icon} ${c.name}<small>Limit $${fmt(c.limit)} \u00b7 tap to rename</small></div>
+      <button class="cm-emoji" onclick="openEmojiPicker('${c.id}')" title="Change emoji">${c.icon}</button>
+      <div class="cm-name" onclick="renameCategory('${c.id}')">${escHtml(c.name)}<small>${c.limit>0?'Limit $'+fmt(c.limit):'No limit'}${c.oneTime?' \u00b7 one-time':''} \u00b7 tap to rename</small></div>
       <button onclick="editCatLimit('${c.id}')">$</button><button class="del" onclick="removeCategory('${c.id}')">\u2715</button>
     </div>`).join('');
+  document.getElementById('cmNewEmoji').textContent = newCatEmoji || '\ud83c\udf37';
 }
 async function renameCategory(id){ const c=state.cats.find(x=>x.id===id); if(!c) return; const v=prompt('Rename category:', c.name); if(v===null||!v.trim()) return; c.name=v.trim(); await save(); renderCatManager(); render(); }
-async function editCatLimit(id){ const c=state.cats.find(x=>x.id===id); if(!c) return; const v=prompt('Monthly limit for '+c.name+' ($):', c.limit); if(v===null||isNaN(parseFloat(v))) return; c.limit=parseFloat(v); await save(); renderCatManager(); render(); }
+async function editCatLimit(id){ const c=state.cats.find(x=>x.id===id); if(!c) return; const n=await askAmount('Limit \u2014 '+c.name, c.limit, 'Monthly limit. Leave at $0 for no limit.'); if(n===null) return; c.limit=n; await save(); renderCatManager(); render(); }
+
+let emojiTarget=null, newCatEmoji=null;
+function openEmojiPicker(target){
+  emojiTarget=target;
+  const cur = target==='new' ? newCatEmoji : (state.cats.find(c=>c.id===target)||{}).icon;
+  document.getElementById('emojiGrid').innerHTML = EMOJIS.map(e=>`<button class="${e===cur?'act':''}" onclick="pickEmoji('${e}')">${e}</button>`).join('');
+  document.getElementById('emojiCustom').value='';
+  document.getElementById('emojiOverlay').classList.add('on');
+}
+async function pickEmoji(e){
+  if(emojiTarget==='new'){ newCatEmoji=e; document.getElementById('cmNewEmoji').textContent=e; }
+  else { const c=state.cats.find(x=>x.id===emojiTarget); if(c){ c.icon=e; await save(); renderCatManager(); render(); } }
+  closeOv('emojiOverlay');
+}
+function useCustomEmoji(){
+  const v=document.getElementById('emojiCustom').value.trim(); if(!v) return;
+  let first;
+  try { first=[...new Intl.Segmenter(undefined,{granularity:'grapheme'}).segment(v)][0].segment; } catch(e){ first=Array.from(v)[0]; }
+  pickEmoji(first);
+}
 async function removeCategory(id){
   if(state.cats.length<=1){ alert('Keep at least one category.'); return; }
   const c=state.cats.find(x=>x.id===id);
@@ -735,8 +1061,8 @@ async function removeCategory(id){
 async function addCategory(){
   const inp=document.getElementById('cmNew'); const name=inp.value.trim();
   if(!name){ inp.focus(); return; }
-  state.cats.push({id:'c'+Date.now(), name, color:PALETTE[state.cats.length % PALETTE.length], icon:ICONS[state.cats.length % ICONS.length], limit:100});
-  inp.value=''; await save(); renderCatManager(); render();
+  state.cats.push({id:'c'+Date.now(), name, color:PALETTE[state.cats.length % PALETTE.length], icon:newCatEmoji || ICONS[state.cats.length % ICONS.length], limit:100});
+  inp.value=''; newCatEmoji=null; await save(); renderCatManager(); render();
 }
 
 function openMenu(){ document.getElementById('menuOverlay').classList.add('on'); }
@@ -749,6 +1075,7 @@ function renderDonut(spentByCat, total){
   const other=Object.keys(spentByCat).filter(k=>!state.cats.some(c=>c.id===k)).reduce((s,k)=>s+spentByCat[k],0);
   if(other>0) entries.push({c:{name:'Other',color:'#9a8f7d',icon:'•'}, v:other});
   const lbl = period==='week'?'this week':'this month';
+  total = r2(total);
 
   // Single category: a ring is just a circle, so show a cleaner pill instead of an awkward thin loop
   if(entries.length===1){
@@ -770,29 +1097,93 @@ function renderDonut(spentByCat, total){
     const seg=`<circle r="${R}" cx="65" cy="65" fill="none" stroke="${e.c.color}" stroke-width="18" stroke-linecap="round" stroke-dasharray="${Math.max(0,len-gap)} ${C-Math.max(0,len-gap)}" stroke-dashoffset="${-off}" transform="rotate(-90 65 65)"/>`;
     off+=len; return seg;
   }).join('');
-  const legend=entries.map(e=>`<div class="lg"><span class="sw" style="background:${e.c.color}"></span><span class="nm">${e.c.icon} ${e.c.name}</span><span class="vl">$${fmt(e.v)}</span></div>`).join('');
+  const legend=entries.map(e=>`<div class="lg"><span class="sw" style="background:${e.c.color}"></span><span class="nm">${e.c.icon} ${escHtml(e.c.name)}</span><span class="vl">$${fmt(r2(e.v))}</span></div>`).join('');
   wrap.innerHTML=`<div class="chart-wrap"><div class="donut"><svg viewBox="0 0 130 130" width="130" height="130">${segs}</svg><div class="center"><div class="ct-amt">$${fmt(total)}</div><div class="ct-lbl">${lbl}</div></div></div><div class="legend">${legend}</div></div>`;
+}
+
+function shortDate(ts){ return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
+
+// Biggest single purchases + places/things you keep coming back to
+function renderBiggest(list, total){
+  const el=document.getElementById('bigContent');
+  document.getElementById('bigTitle').textContent = period==='week' ? '🔍 Biggest spending this week' : '🔍 Biggest spending this month';
+  if(!list.length || total<=0){ el.innerHTML='<div class="chart-empty">Nothing to rank yet this '+period+'.</div>'; return; }
+  const top=[...list].sort((a,b)=>netAmt(b)-netAmt(a)).filter(t=>netAmt(t)>0).slice(0,5);
+  let html='<h4>Top purchases</h4>' + top.map((t,i)=>{
+    const m=catMeta(t.cat), n=netAmt(t);
+    return `<div class="big-row"><span class="br-rank">${i+1}</span><span class="br-ic">${m.icon}</span><div class="br-mid"><div class="n">${escHtml(t.note||m.name)}</div><div class="s">${escHtml(m.name)} · ${shortDate(t.ts)} · ${Math.round(n/total*100)}% of spending</div></div><span class="br-amt">$${fmt(n)}</span></div>`;
+  }).join('');
+  // group by the note text ("Chipotle", "chipotle " -> same) to find repeats
+  const groups={};
+  list.forEach(t=>{
+    const key=(t.note||'').toLowerCase().trim().replace(/\s+/g,' '); if(!key) return;
+    const g=groups[key]||(groups[key]={name:t.note.trim(), n:0, sum:0, cat:t.cat});
+    g.n++; g.sum=r2(g.sum+netAmt(t));
+  });
+  const repeats=Object.values(groups).filter(g=>g.n>=2 && g.sum>0).sort((a,b)=>b.sum-a.sum).slice(0,5);
+  if(repeats.length){
+    html+='<div class="big-split"></div><h4>Keeps coming back</h4>' + repeats.map(g=>{
+      const m=catMeta(g.cat);
+      return `<div class="big-row"><span class="br-ic">${m.icon}</span><div class="br-mid"><div class="n">${escHtml(g.name)}</div><div class="s">${g.n}× · about $${fmt(r2(g.sum/g.n))} each</div></div><span class="br-amt">$${fmt(g.sum)}</span></div>`;
+    }).join('');
+  }
+  el.innerHTML=html;
+}
+
+function renderGrowth(){
+  const mk=monthKey(), base=state.debitStart[mk];
+  const start = base ? base.amt : state.debit;
+  const growth = r2(state.debit - start);
+  const goal = state.growthGoal||0;
+  const now=new Date(), dim=new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+  const progress = now.getDate()/dim;
+  // only one-time costs paid straight from debit have actually left checking (card ones leave on payoff)
+  const oneTimeMonth = r2(state.tx.filter(t=>t.type==='exp' && t.pay==='debit' && inCurrentMonth(t.ts) && isOneTime(t)).reduce((s,t)=>s+netAmt(t),0));
+  const sign = v => (v<0?'-$':'+$')+fmt(Math.abs(r2(v)));
+  document.getElementById('panelSaveAmt').textContent = sign(growth);
+  const lines=[];
+  if(goal>0){
+    const expected = r2(goal*progress);
+    const status = growth>=expected ? '<b>on track 🌱</b>' : `<b>$${fmt(Math.round(expected-growth))} behind pace</b>`;
+    lines.push(`of +$${fmt(goal)} goal · ${status}`);
+  } else lines.push('Tap edit to set a monthly goal');
+  lines.push(`since ${monthLabelFor(mk).split(' ')[0].slice(0,3)} 1 ($${fmt(start)})${base&&base.est?' · est.':''}`);
+  if(oneTimeMonth>0) lines.push(`${sign(growth+oneTimeMonth)} without one-time costs`);
+  document.getElementById('panelSaveSub').innerHTML = lines.join('<br>');
+  document.getElementById('panelSaveBar').style.width = goal>0 ? Math.max(0,Math.min(100, growth/goal*100))+'%' : '0%';
 }
 
 function render(){
   if(!state) return;
+  ensureDebitBaseline(); // new month? record where checking started
   document.getElementById('monthPill').textContent=monthLabel();
   updateMonthNav();
   const isWeek = period==='week';
-  const txExp = state.tx.filter(t=>t.type==='exp' && periodFilter(t));
-  const spentByCat={}; let totalSpent=0;
-  txExp.forEach(t=>{ const n=netAmt(t); spentByCat[t.cat]=(spentByCat[t.cat]||0)+n; totalSpent+=n; });
+
+  // one-time costs: every expense in the period vs. the ones that count right now
+  const txAllExp = state.tx.filter(t=>t.type==='exp' && periodFilter(t));
+  const txExp = txAllExp.filter(counts);
+  const spentByCat={}, spentByCatAllExp={}; let totalSpent=0, oneTimeHidden=0;
+  txAllExp.forEach(t=>{ const n=netAmt(t); spentByCatAllExp[t.cat]=r2((spentByCatAllExp[t.cat]||0)+n); if(!counts(t)) oneTimeHidden+=n; });
+  txExp.forEach(t=>{ const n=netAmt(t); spentByCat[t.cat]=r2((spentByCat[t.cat]||0)+n); totalSpent+=n; });
+  totalSpent=r2(totalSpent); oneTimeHidden=r2(oneTimeHidden);
+
+  document.getElementById('otSwitch').classList.toggle('on', !!state.showOneTime);
+  document.getElementById('otSub').textContent = state.showOneTime
+    ? 'Full picture — tuition, dues & textbooks count below'
+    : (oneTimeHidden>0 ? `$${fmt(oneTimeHidden)} hidden this ${period} — flip to see the full picture` : 'Tuition, dues & textbooks stay out of your totals');
+
   const incomePeriod = state.tx.filter(t=>t.type==='income' && periodFilter(t)).reduce((s,t)=>s+t.amt,0);
   const incomeMonth = state.tx.filter(t=>t.type==='income' && inViewMonth(t.ts)).reduce((s,t)=>s+t.amt,0);
-  const incomeShown = isWeek ? incomePeriod : incomeMonth;
-  const totalBudgetMonthly = state.cats.reduce((s,c)=>s+c.limit,0);
+  const incomeShown = r2(isWeek ? incomePeriod : incomeMonth);
+  const totalBudgetMonthly = state.cats.filter(c=>!c.oneTime).reduce((s,c)=>s+(c.limit||0),0);
   const budgetShown = isWeek ? totalBudgetMonthly/(30/7) : totalBudgetMonthly;
-  const left = incomeShown - totalSpent;
+  const left = r2(incomeShown - totalSpent);
 
   document.getElementById('heroLabel').textContent = isWeek ? 'Left to spend this week' : 'Left to spend this month';
   const heroLeft=document.getElementById('heroLeft');
   heroLeft.textContent=(left<0?'-$':'$')+fmt(Math.abs(left)); heroLeft.classList.toggle('neg', left<0);
-  document.getElementById('heroSub').textContent = incomeShown>0 ? `of $${fmt(incomeShown)} income \u00b7 $${fmt(totalSpent)} spent` : (isWeek ? 'No income logged this week yet' : 'Add a paycheck to set this month\u2019s income');
+  document.getElementById('heroSub').textContent = incomeShown>0 ? `of $${fmt(incomeShown)} income · $${fmt(totalSpent)} spent` : (isWeek ? 'No income logged this week yet' : 'Add a paycheck to set this month’s income');
   document.getElementById('miniIncome').textContent='$'+fmt(incomeShown);
   document.getElementById('miniSpent').textContent='$'+fmt(totalSpent);
   document.getElementById('miniBudgetK').textContent = isWeek ? 'Budget/wk' : 'Budget';
@@ -801,86 +1192,114 @@ function render(){
   // month-over-month: compare viewed month vs the month before it, using real kept data
   const momEl=document.getElementById('momLine');
   const prevMonthKey = shiftMonth(viewMonth, -1);
-  const prevSpent = state.tx.filter(t=>t.type==='exp' && monthKey(new Date(t.ts))===prevMonthKey).reduce((s,t)=>s+netAmt(t),0);
+  const prevSpent = r2(state.tx.filter(t=>t.type==='exp' && counts(t) && monthKey(new Date(t.ts))===prevMonthKey).reduce((s,t)=>s+netAmt(t),0));
   if(!isWeek && prevSpent>0){
     const diff=totalSpent-prevSpent; const pct=Math.round(Math.abs(diff)/prevSpent*100);
     momEl.style.display='flex';
-    if(diff>0) momEl.innerHTML=`<span class="arrow up">\u2191</span> <b style="color:var(--ink)">$${fmt(totalSpent)}</b> spent \u2014 ${pct}% more than ${monthLabelFor(prevMonthKey).split(' ')[0]} ($${fmt(prevSpent)}).`;
-    else if(diff<0) momEl.innerHTML=`<span class="arrow down">\u2193</span> <b style="color:var(--ink)">$${fmt(totalSpent)}</b> spent \u2014 ${pct}% less than ${monthLabelFor(prevMonthKey).split(' ')[0]} ($${fmt(prevSpent)}).`;
+    if(diff>0) momEl.innerHTML=`<span class="arrow up">↑</span> <b style="color:var(--ink)">$${fmt(totalSpent)}</b> spent — ${pct}% more than ${monthLabelFor(prevMonthKey).split(' ')[0]} ($${fmt(prevSpent)}).`;
+    else if(diff<0) momEl.innerHTML=`<span class="arrow down">↓</span> <b style="color:var(--ink)">$${fmt(totalSpent)}</b> spent — ${pct}% less than ${monthLabelFor(prevMonthKey).split(' ')[0]} ($${fmt(prevSpent)}).`;
     else momEl.innerHTML=`Same spend as ${monthLabelFor(prevMonthKey).split(' ')[0]} ($${fmt(totalSpent)}).`;
   } else momEl.style.display='none';
 
   document.getElementById('debitAmt').textContent=fmt(state.debit);
   document.getElementById('walletAmt').textContent=fmt(state.wallet);
   const dW=document.getElementById('debitWarn');
-  if(state.debit<0){ dW.style.display='block'; dW.textContent='\u26a0 Debit is negative.'; } else dW.style.display='none';
+  if(state.debit<0){ dW.style.display='block'; dW.textContent='⚠ Debit is negative.'; } else dW.style.display='none';
   const wW=document.getElementById('walletWarn');
-  if(state.wallet<0){ wW.style.display='block'; wW.textContent='\u26a0 Wallet negative \u2014 maybe a missed withdrawal.'; } else wW.style.display='none';
+  if(state.wallet<0){ wW.style.display='block'; wW.textContent='⚠ Wallet negative — maybe a missed withdrawal.'; } else wW.style.display='none';
 
   const ccAmt=document.getElementById('ccAmt');
   ccAmt.textContent='$'+fmt(state.card); ccAmt.classList.toggle('zero', state.card<=0);
-  document.getElementById('ccSub').textContent=state.card>0?'Owed \u2014 pay off to pull from debit':'Nothing owed right now';
+  document.getElementById('ccSub').textContent=state.card>0?'Owed — pay off to pull from debit':'Nothing owed right now';
   document.getElementById('ccPay').disabled=state.card<=0;
 
   document.getElementById('chartTitle').textContent = isWeek ? '🍃 Where it went this week' : '🍃 Where it went this month';
   renderDonut(spentByCat, totalSpent);
+  renderBiggest(txExp, totalSpent);
 
   const catsEl=document.getElementById('cats');
   const now=new Date(); const dayOfMonth=now.getDate();
   const daysInMonth=new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
   const monthProgress=dayOfMonth/daysInMonth;
   catsEl.innerHTML=state.cats.map(c=>{
-    const sp=spentByCat[c.id]||0;
+    const sp=spentByCatAllExp[c.id]||0;
     const lim = isWeek ? c.limit/(30/7) : c.limit;
-    const pct=lim>0?Math.min(100,(sp/lim)*100):0;
-    const over=sp>lim && lim>0; const barColor=over?'var(--accent)':c.color;
+    const name=`<div class="cat-name"><span class="dot" style="background:${c.color}"></span>${c.icon} ${escHtml(c.name)}</div>`;
+    if(!(lim>0)){ // no limit (e.g. one-time costs): just show what was spent
+      const note = c.oneTime ? (state.showOneTime ? 'One-time — counted in your totals right now' : 'One-time — kept out of your totals') : 'No limit set';
+      return `<div class="cat"><div class="cat-top">${name}<div class="cat-nums"><b>$${fmt(sp)}</b> · no limit</div></div><div class="pace" style="margin-top:0">${note}</div></div>`;
+    }
+    const pct=Math.min(100,(sp/lim)*100);
+    const over=sp>lim; const barColor=over?'var(--accent)':c.color;
     let pace='';
-    if(!isWeek && c.limit>0 && sp>0){ const expected=c.limit*monthProgress; if(sp>expected*1.15) pace=`<div class="pace behind">Ahead of pace \u2014 ${Math.round(monthProgress*100)}% through month, ${Math.round(sp/c.limit*100)}% of budget used</div>`; }
-    return `<div class="cat"><div class="cat-top"><div class="cat-name"><span class="dot" style="background:${c.color}"></span>${c.icon} ${c.name}</div><div class="cat-nums ${over?'over':''}"><b>$${fmt(sp)}</b> / $${fmt(Math.round(lim))}</div></div><div class="bar"><i style="width:${pct}%;background:${barColor}"></i></div>${pace}</div>`;
+    if(!isWeek && viewMonth===monthKey() && sp>0){ const expected=c.limit*monthProgress; if(sp>expected*1.15) pace=`<div class="pace behind">Ahead of pace — ${Math.round(monthProgress*100)}% through month, ${Math.round(sp/c.limit*100)}% of budget used</div>`; }
+    return `<div class="cat"><div class="cat-top">${name}<div class="cat-nums ${over?'over':''}"><b>$${fmt(sp)}</b> / $${fmt(Math.round(lim))}</div></div><div class="bar"><i style="width:${pct}%;background:${barColor}"></i></div>${pace}</div>`;
   }).join('');
 
   // three panels
-  const weekSpent = state.tx.filter(t=>t.type==='exp' && inCurrentWeek(t.ts)).reduce((s,t)=>s+netAmt(t),0);
-  const savedThisMonth = spentByCatAll('savings');
-  const goal = state.savingsGoal||0;
-  document.getElementById('panelSaveAmt').textContent = goal>0 ? '$'+fmt(savedThisMonth) : 'Set goal';
-  if(goal>0){
-    const gp=Math.min(100, savedThisMonth/goal*100);
-    document.getElementById('panelSaveSub').textContent = `of $${fmt(goal)} goal \u00b7 ${Math.round(gp)}%`;
-    document.getElementById('panelSaveBar').style.width = gp+'%';
-  } else {
-    document.getElementById('panelSaveSub').textContent = 'Tap edit to set a goal';
-    document.getElementById('panelSaveBar').style.width = '0%';
-  }
+  const weekSpent = r2(state.tx.filter(t=>t.type==='exp' && counts(t) && inCurrentWeek(t.ts)).reduce((s,t)=>s+netAmt(t),0));
+  renderGrowth();
   document.getElementById('panelWeekAmt').textContent = '$'+fmt(weekSpent);
-  document.getElementById('panelIncAmt').textContent = '$'+fmt(incomeMonth);
+  document.getElementById('panelIncAmt').textContent = '$'+fmt(r2(state.tx.filter(t=>t.type==='income' && inCurrentMonth(t.ts)).reduce((s,t)=>s+t.amt,0)));
 
-  document.getElementById('activityTitle').textContent = isWeek ? '📖 This week\u2019s activity' : '📖 Recent activity';
+  document.getElementById('activityTitle').textContent = isWeek ? '📖 This week’s activity' : '📖 Recent activity';
   const txEl=document.getElementById('txList');
-  const list = state.tx.filter(t => t.type==='income' || periodFilter(t));
-  if(list.length===0){ txEl.innerHTML='<div class="empty">No transactions this '+period+' yet. Tap \u201cAdd expense\u201d to log one.</div>'; }
+  const list = state.tx.filter(periodFilter).sort((a,b)=>b.ts-a.ts);
+  const OTHER = {
+    income:  { ic:'💰', t1:'Paycheck',        t2:'into debit',                          cls:'in',   pre:'+' },
+    payoff:  { ic:'💳', t1:'Card payoff',     t2:'debit → card · not spending', cls:'pay',  pre:'' },
+    withdraw:{ ic:'🏧', t1:'Cash withdrawal', t2:'debit → wallet',                  cls:'move', pre:'' },
+  };
+  if(list.length===0){ txEl.innerHTML='<div class="empty">No transactions this '+period+' yet. Tap “Add expense” to log one.</div>'; }
   else {
-    txEl.innerHTML=list.slice(0,60).map(t=>{
-      if(t.type==='income'){ return `<div class="tx" style="cursor:default"><div class="tx-ic">\ud83d\udcb0</div><div class="tx-mid"><div class="t1">Paycheck</div><div class="t2">into debit \u00b7 ${new Date(t.ts).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div></div><div class="tx-amt in">+$${fmt(t.amt)}</div></div>`; }
+    txEl.innerHTML=list.slice(0,80).map(t=>{
+      if(t.type!=='exp'){
+        const o=OTHER[t.type]; if(!o) return '';
+        return `<div class="tx" onclick="undoTx(${t.id})"><div class="tx-ic">${o.ic}</div><div class="tx-mid"><div class="t1">${o.t1}</div><div class="t2">${o.t2} · ${shortDate(t.ts)}</div></div><div class="tx-amt ${o.cls}">${o.pre}$${fmt(t.amt)}</div><span class="tx-chev">›</span></div>`;
+      }
       const m=catMeta(t.cat); let chip='';
       if(t.pay==='cash') chip='<span class="pay-chip pay-cash">cash</span>';
       else if(t.pay==='debit') chip='<span class="pay-chip pay-debit">debit</span>';
       else chip='<span class="pay-chip pay-card">credit</span>';
+      if(m.oneTime) chip+=' <span class="pay-chip ot-chip">one-time</span>';
       const hasReimb = (t.reimb||0) > 0;
       const reimbChip = hasReimb ? ` <span class="pay-chip" style="background:var(--sage);color:var(--sage-ink)">−$${fmt(t.reimb)} back</span>` : '';
       const amtHtml = hasReimb
         ? `<div style="text-align:right"><div class="tx-amt">$${fmt(netAmt(t))}</div><div style="font-size:11px;color:var(--ink-soft);text-decoration:line-through">$${fmt(t.amt)}</div></div>`
         : `<div class="tx-amt">$${fmt(t.amt)}</div>`;
-      return `<div class="tx" onclick="openEdit(${t.id})"><div class="tx-ic">${m.icon}</div><div class="tx-mid"><div class="t1">${t.note || m.name}</div><div class="t2">${m.name} \u00b7 ${new Date(t.ts).toLocaleDateString('en-US',{month:'short',day:'numeric'})} ${chip}${reimbChip}</div></div>${amtHtml}<span class="tx-chev">\u203a</span></div>`;
+      return `<div class="tx" onclick="openEdit(${t.id})"><div class="tx-ic">${m.icon}</div><div class="tx-mid"><div class="t1">${escHtml(t.note || m.name)}</div><div class="t2">${escHtml(m.name)} · ${shortDate(t.ts)} ${chip}${reimbChip}</div></div>${amtHtml}<span class="tx-chev">›</span></div>`;
     }).join('');
   }
 }
-function spentByCatAll(catId){ return state.tx.filter(t=>t.type==='exp' && t.cat===catId && inViewMonth(t.ts)).reduce((s,t)=>s+netAmt(t),0); }
 
 document.getElementById('lockPass').addEventListener('keydown', e=>{ if(e.key==='Enter'){ if(lockMode==='unlock') lockSubmit(); else document.getElementById('lockPass2').focus(); }});
 document.getElementById('lockPass2').addEventListener('keydown', e=>{ if(e.key==='Enter') lockSubmit(); });
-document.getElementById('inAmt')?.addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('inNote').focus(); });
-['addOverlay','catOverlay','menuOverlay'].forEach(id=>{ document.getElementById(id).addEventListener('click', e=>{ if(e.target.id===id) document.getElementById(id).classList.remove('on'); }); });
+['addOverlay','catOverlay','menuOverlay','growthOverlay','emojiOverlay'].forEach(id=>{ document.getElementById(id).addEventListener('click', e=>{ if(e.target.id===id) document.getElementById(id).classList.remove('on'); }); });
+document.getElementById('padOverlay').addEventListener('click', e=>{ if(e.target.id==='padOverlay') padCancel(); });
+document.getElementById('emojiCustom').addEventListener('keydown', e=>{ if(e.key==='Enter') useCustomEmoji(); });
+document.getElementById('lockKeys').innerHTML = keypadHTML('lockKey', false);
+// Laptop: typing on a real keyboard works with both number pads
+document.addEventListener('keydown', e=>{
+  if(e.metaKey || e.ctrlKey || e.altKey) return;
+  if(padState){
+    if(/^[0-9]$/.test(e.key)) padKey(e.key);
+    else if(e.key==='.' && padState.mode==='amount') padKey('.');
+    else if(e.key==='Backspace') padKey('del');
+    else if(e.key==='Enter') padDone();
+    else if(e.key==='Escape') padCancel();
+    else if(padState.mode==='pin' && e.key.length===1) padKey(e.key);
+    else return;
+    e.preventDefault(); return;
+  }
+  const tag=(document.activeElement && document.activeElement.tagName)||'';
+  if(lockScreenOn() && !kbMode && tag!=='INPUT'){
+    if(e.key==='Backspace') lockKey('del');
+    else if(e.key==='Enter') lockSubmit();
+    else if(e.key.length===1) lockKey(e.key);
+    else return;
+    e.preventDefault();
+  }
+});
 if(!('crypto' in window) || !crypto.subtle){ document.getElementById('lockDesc').textContent='Your browser doesn\u2019t support secure encryption here. Open this file directly on your device over https://.'; }
 initLock();
 </script>
