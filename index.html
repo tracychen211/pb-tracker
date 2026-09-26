@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Pocketbook</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-title" content="Pocketbook">
+<meta name="theme-color" content="#f3c9c6">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700&family=Fredoka:wght@400;500;600&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
@@ -404,7 +409,11 @@
   body::before { content: ''; position: fixed; inset: 0; z-index: -2; background: #e9c9cf url('bg.jpg') center top / cover no-repeat; }
   body::after { content: ''; position: fixed; inset: 0; z-index: -1; background: rgba(250,240,225,.38); }
   header { padding-top: calc(22px + env(safe-area-inset-top)); }
-  .brand { text-shadow: 0 1px 0 rgba(255,250,240,.7); }
+  /* heart-coin logo */
+  .brand { font-family: 'Fredoka', 'Nunito', sans-serif; font-weight: 500; font-size: 27px; display: flex; align-items: center; gap: 7px; text-shadow: 0 1px 0 rgba(255,250,240,.8); }
+  .brand .coin { width: 38px; height: 38px; flex-shrink: 0; filter: drop-shadow(0 1px 1px rgba(74,64,49,.15)); }
+  .brand .bw { color: #6a4f3d; }
+  .brand .bw span { color: #d39a35; }
   .monthnav .mn-label { background: rgba(253,248,234,.7); border-radius: 100px; padding: 5px 12px; }
   .sec-head h2 { text-shadow: 0 0 10px rgba(253,248,234,.95), 0 0 3px rgba(253,248,234,.9); white-space: nowrap; }
   /* frosted-glass cards */
@@ -464,7 +473,7 @@
 
 
 <header>
-  <div class="brand">🌿 Pocket<span>book</span></div>
+  <div class="brand"><svg class="coin" viewBox="0 0 40 40" aria-hidden="true"><circle cx="19.5" cy="21.5" r="15" fill="#f5cf73" stroke="#8b6a52" stroke-width="2.2"/><circle cx="19.5" cy="21.5" r="11" fill="none" stroke="#d9a441" stroke-width="1.6" stroke-dasharray="2 2.4"/><path d="M19.5 28s-6-3.7-6-8.1c0-2.4 1.7-3.9 3.5-3.9 1.1 0 2 .6 2.5 1.4.5-.8 1.4-1.4 2.5-1.4 1.8 0 3.5 1.5 3.5 3.9 0 4.4-6 8.1-6 8.1z" fill="#e58f86" stroke="#8b6a52" stroke-width="1.6" stroke-linejoin="round"/><path d="M34 3.5l.9 2.4 2.4.9-2.4.9-.9 2.4-.9-2.4-2.4-.9 2.4-.9z" fill="#f0b94a" stroke="#8b6a52" stroke-width=".9" stroke-linejoin="round"/></svg><span class="bw">Pocket<span>book</span></span></div>
   <div class="hdr-right">
     <div class="month-pill" id="monthPill">—</div>
     <button class="icon-btn" onclick="openMenu()" title="Menu">⋯</button>
