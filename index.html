@@ -498,6 +498,17 @@
   body { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); }
   .dlg-overlay { padding-top: calc(24px + env(safe-area-inset-top)); }
   .sheet { max-height: calc(92vh - env(safe-area-inset-top)); }
+  /* ---------- pay off card ---------- */
+  .pay-quick { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+  .pay-quick button { border: 1.5px solid var(--line); background: var(--bg); color: var(--ink-soft); border-radius: 100px; padding: 7px 13px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Nunito',sans-serif; }
+  .pay-quick button.act { background: var(--blue-soft); border-color: #b3d0de; color: var(--blue-ink); }
+  .pay-after { background: var(--bg); border: 1.5px dashed var(--line); border-radius: 14px; padding: 10px 13px; font-size: 13.5px; color: var(--ink-soft); line-height: 1.6; margin-bottom: 12px; }
+  .pay-after b { color: var(--ink); }
+  .pay-after .warn { color: var(--accent); font-weight: 700; }
+  /* ---------- undo toast ---------- */
+  .toast { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(10px); z-index: 90; background: #5a4232; color: #fdf6e7; border-radius: 100px; padding: 8px 8px 8px 18px; display: flex; align-items: center; gap: 12px; font-size: 14px; box-shadow: 0 6px 20px rgba(74,64,49,.3); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; max-width: calc(100vw - 32px); white-space: nowrap; }
+  .toast.on { opacity: 1; transform: translateX(-50%); pointer-events: auto; }
+  .toast button { background: #f5cf73; color: #5a4232; border: none; border-radius: 100px; padding: 7px 14px; font-weight: 800; font-family: 'Nunito',sans-serif; font-size: 13.5px; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -743,6 +754,29 @@
   </div>
 </div>
 
+<!-- PAY OFF CARD -->
+<div class="overlay" id="payOverlay">
+  <div class="sheet">
+    <h3>💳 Pay off card</h3>
+    <div class="desc" id="payOwed"></div>
+    <div class="field"><label>How much?</label>
+      <input type="text" readonly inputmode="none" id="payAmt" class="amount-big amt-tap" onclick="payEditAmt()">
+      <div class="pay-quick" id="payQuick"></div>
+    </div>
+    <div class="field"><label>Pay from</label>
+      <div class="seg" id="payFromSeg">
+        <button data-f="debit" onclick="pickPayFrom('debit')">🏦 Debit</button>
+        <button data-f="cash" onclick="pickPayFrom('cash')">💵 Cash</button>
+      </div>
+    </div>
+    <div class="pay-after" id="payAfter"></div>
+    <div class="sheet-btns"><button class="btn-ghost" onclick="closeOv('payOverlay')">Cancel</button><button class="btn-primary" id="payGo" onclick="confirmPayCard()">Pay</button></div>
+  </div>
+</div>
+
+<!-- UNDO TOAST -->
+<div class="toast" id="toast"><span id="toastMsg"></span><button id="toastUndo" onclick="toastUndo()">Undo</button></div>
+
 <!-- REVIEW LOGGED-LATER PURCHASES -->
 <div class="overlay" id="reviewOverlay">
   <div class="sheet">
@@ -913,7 +947,7 @@ function estimateDebitStart(mk){
   state.tx.filter(t=>monthKey(new Date(t.ts))===mk).forEach(t=>{
     if(t.type==='income') delta+=t.amt;
     else if(t.type==='exp'){ if(t.pay==='debit') delta-=t.amt; delta+=(t.reimb||0); }
-    else if(t.type==='payoff' || t.type==='withdraw') delta-=t.amt;
+    else if((t.type==='payoff' && t.from!=='cash') || t.type==='withdraw') delta-=t.amt;
   });
   return r2(state.debit - delta);
 }
@@ -1190,7 +1224,7 @@ function exportCSV(){
   const rows=[...state.tx].sort((a,b)=>a.ts-b.ts).map(t=>{
     const date=localDate(t.ts), time=new Date(t.ts).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
     if(t.type==='exp'){ const c=catMeta(t.cat); return [date,time,'Expense',t.note||'',c.name,c.oneTime?'Yes':'No',PAY_NAMES[t.pay]||t.pay,money(t.amt),money(t.reimb),money(netAmt(t))]; }
-    const m=other[t.type]||[t.type,'',''];
+    const m=(t.type==='payoff' && t.from==='cash') ? ['Card payoff','Paid credit card with cash','Cash'] : (other[t.type]||[t.type,'','']);
     return [date,time,m[0],m[1],'','',m[2],money(t.amt),'',''];
   });
   const csv='﻿'+[head,...rows].map(r=>r.map(esc).join(',')).join('\r\n');
@@ -1398,12 +1432,67 @@ async function withdrawCash(){
 async function addCashToWallet(){ const n=await askAmount('Add cash to wallet', null, 'Gift, tip, etc. \u2014 doesn\u2019t touch debit.'); if(!n) return; state.wallet=r2(state.wallet+n); await save(); render(); }
 async function setWallet(){ const n=await askAmount('Set cash on hand', state.wallet); if(n===null) return; state.wallet=n; await save(); render(); }
 async function setCard(){ const n=await askAmount('Set card balance owed', state.card); if(n===null) return; state.card=n; await save(); render(); }
-async function payCard(){
+// ---------- pay off the card: pick how much and where it comes from ----------
+let payFrom='debit';
+function payCard(){
   if(state.card<=0) return;
-  const n=await askAmount('Pay off card', state.card, 'Pulls from debit. Doesn\u2019t count as spending \u2014 the purchases already did.'); if(!n) return;
-  const pay=r2(Math.min(n,state.card)); state.card=r2(state.card-pay); state.debit=r2(state.debit-pay);
-  state.tx.unshift({ id:newId(), amt:pay, type:'payoff', ts:Date.now() });
-  await save(); render();
+  document.getElementById('payOwed').innerHTML = `You owe <b>$${fmt(state.card)}</b>. Paying doesn’t count as spending — the purchases already did.`;
+  document.getElementById('payAmt').value = '$'+r2(state.card);
+  payFrom = state.lastPayFrom || 'debit';
+  document.querySelectorAll('#payFromSeg button').forEach(b=>b.classList.toggle('act', b.dataset.f===payFrom));
+  updatePayPreview();
+  document.getElementById('payOverlay').classList.add('on');
+}
+function payAmount(){ return readMoney('payAmt'); }
+async function payEditAmt(){ await padInto('payAmt','Pay how much?'); updatePayPreview(); }
+function setPayAmt(v){ document.getElementById('payAmt').value='$'+r2(v); updatePayPreview(); }
+function pickPayFrom(f){ payFrom=f; document.querySelectorAll('#payFromSeg button').forEach(b=>b.classList.toggle('act', b.dataset.f===f)); updatePayPreview(); }
+function updatePayPreview(){
+  const owed=state.card, n=payAmount();
+  // quick picks: full balance, half, and round amounts under the balance
+  const picks=[['Full balance', owed]];
+  if(owed>=20) picks.push(['Half', r2(owed/2)]);
+  [50,100,200].filter(v=>v<owed).slice(0,2).forEach(v=>picks.push(['$'+v, v]));
+  document.getElementById('payQuick').innerHTML = picks.map(([l,v])=>`<button class="${Math.abs(n-v)<0.005?'act':''}" onclick="setPayAmt(${v})">${l}</button>`).join('');
+  const pay=r2(Math.min(n,owed)), fromBal = payFrom==='cash' ? state.wallet : state.debit, fromName = payFrom==='cash' ? 'Wallet' : 'Debit';
+  let html='';
+  if(!(n>0)) html='Enter how much you’re paying.';
+  else {
+    html=`${fromName}: <b>$${fmt(fromBal)}</b> → <b>$${fmt(r2(fromBal-pay))}</b><br>Card owed: <b>$${fmt(owed)}</b> → <b>$${fmt(r2(owed-pay))}</b>`;
+    if(n>owed+0.004) html+=`<br><span class="warn">That’s more than you owe — it’ll pay the $${fmt(owed)} balance.</span>`;
+    if(fromBal-pay<0) html+=`<br><span class="warn">That’s more than your ${fromName.toLowerCase()} has.</span>`;
+  }
+  document.getElementById('payAfter').innerHTML=html;
+  document.getElementById('payGo').textContent = n>0 ? `Pay $${fmt(pay)}` : 'Pay';
+}
+async function confirmPayCard(){
+  const n=payAmount(); if(!(n>0)){ await appAlert('How much?', 'Tap the amount to enter what you’re paying.', '🪙'); return; }
+  const pay=r2(Math.min(n,state.card));
+  if(payFrom==='cash') state.wallet=r2(state.wallet-pay); else state.debit=r2(state.debit-pay);
+  state.card=r2(state.card-pay);
+  const t={ id:newId(), amt:pay, type:'payoff', from:payFrom, ts:Date.now() };
+  state.tx.unshift(t); state.lastPayFrom=payFrom;
+  await save(); closeOv('payOverlay'); render();
+  showToast(`Paid $${fmt(pay)} from ${payFrom==='cash'?'cash':'debit'}`, t.id);
+}
+// Reverse a paycheck, payoff, or withdrawal's effect on balances and remove it
+function reverseMove(t){
+  if(t.type==='income') state.debit=r2(state.debit-t.amt);
+  else if(t.type==='payoff'){ state.card=r2(state.card+t.amt); if(t.from==='cash') state.wallet=r2(state.wallet+t.amt); else state.debit=r2(state.debit+t.amt); }
+  else if(t.type==='withdraw'){ state.wallet=r2(state.wallet-t.amt); state.debit=r2(state.debit+t.amt); }
+  state.tx=state.tx.filter(x=>x.id!==t.id);
+}
+// little "Paid … · Undo" bar for a few seconds after paying
+let toastTimer=null, toastTxId=null;
+function showToast(msg, txId){
+  toastTxId=txId; document.getElementById('toastMsg').textContent=msg;
+  document.getElementById('toast').classList.add('on');
+  clearTimeout(toastTimer); toastTimer=setTimeout(hideToast, 7000);
+}
+function hideToast(){ document.getElementById('toast').classList.remove('on'); toastTxId=null; }
+async function toastUndo(){
+  const t=state.tx.find(x=>x.id===toastTxId); hideToast(); if(!t) return;
+  reverseMove(t); await save(); render();
 }
 // Tap a paycheck, card payoff, or withdrawal: see it, change a paycheck's amount, or remove it
 async function undoTx(id){
@@ -1412,8 +1501,8 @@ async function undoTx(id){
   const info={
     income:  { icon:'💰', title:'Paycheck', big:`<span class="big in">+$${fmt(t.amt)}</span>`, sub:`into debit · ${when}`, rm:'Remove paycheck',
                why:'Removing it takes the money back out of debit.' },
-    payoff:  { icon:'💳', title:'Card payoff', big:`<span class="big">$${fmt(t.amt)}</span>`, sub:`debit → card · ${when}`, rm:'Undo payoff',
-               why:'Undoing puts it back on the card and back into debit.' },
+    payoff:  { icon:'💳', title:'Card payoff', big:`<span class="big">$${fmt(t.amt)}</span>`, sub:`${t.from==='cash'?'cash':'debit'} → card · ${when}`, rm:'Undo payoff',
+               why:`Undoing puts it back on the card and back into ${t.from==='cash'?'your wallet':'debit'}.` },
     withdraw:{ icon:'🏧', title:'Cash withdrawal', big:`<span class="big">$${fmt(t.amt)}</span>`, sub:`debit → wallet · ${when}`, rm:'Undo withdrawal',
                why:'Undoing moves it from your wallet back to debit.' },
   }[t.type];
@@ -1428,10 +1517,7 @@ async function undoTx(id){
   }
   if(pick!=='remove') return;
   if(!(await appConfirm({icon:info.icon, title:`${info.rm}?`, msg:info.why, ok:info.rm.split(' ')[0], danger:true}))) return;
-  if(t.type==='income') state.debit=r2(state.debit-t.amt);
-  else if(t.type==='payoff'){ state.card=r2(state.card+t.amt); state.debit=r2(state.debit+t.amt); }
-  else if(t.type==='withdraw'){ state.wallet=r2(state.wallet-t.amt); state.debit=r2(state.debit+t.amt); }
-  state.tx=state.tx.filter(x=>x.id!==id); await save(); render();
+  reverseMove(t); await save(); render();
 }
 
 // ---------- checking growth ----------
@@ -1578,7 +1664,9 @@ function renderGrowth(){
   // not the day you pay the card.
   const checking = r2(state.debit - startDebit);
   const cardNew  = r2(state.card - startCard);          // + means you owe more than on the 1st
-  const growth   = r2(checking - cardNew);
+  // paying the card with cash lowers the card without touching checking; count it so growth stays even
+  const cashPaid = r2(state.tx.filter(t=>t.type==='payoff' && t.from==='cash' && inCurrentMonth(t.ts)).reduce((x,t)=>x+t.amt,0));
+  const growth   = r2(checking - cardNew - cashPaid);
   const goal = state.growthGoal||0;
   const now=new Date(), dim=new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
   const progress = now.getDate()/dim;
@@ -1686,11 +1774,12 @@ function render(){
 const OTHER_TX = {
   income:  { ic:'💰', t1:'Paycheck',        t2:'into debit',                  cls:'in',   pre:'+' },
   payoff:  { ic:'💳', t1:'Card payoff',     t2:'debit → card · not spending', cls:'pay',  pre:'' },
+  payoffCash:{ ic:'💳', t1:'Card payoff',   t2:'cash → card · not spending',  cls:'pay',  pre:'' },
   withdraw:{ ic:'🏧', t1:'Cash withdrawal', t2:'debit → wallet',              cls:'move', pre:'' },
 };
 function txRowHTML(t, fromDetail){
   if(t.type!=='exp'){
-    const o=OTHER_TX[t.type]; if(!o) return '';
+    const o=OTHER_TX[t.type==='payoff' && t.from==='cash' ? 'payoffCash' : t.type]; if(!o) return '';
     return `<div class="tx" onclick="undoTx(${t.id})"><div class="tx-ic">${o.ic}</div><div class="tx-mid"><div class="t1">${o.t1}</div><div class="t2">${o.t2} · ${shortDate(t.ts)}</div></div><div class="tx-amt ${o.cls}">${o.pre}$${fmt(t.amt)}</div><span class="tx-chev">›</span></div>`;
   }
   const m=catMeta(t.cat); let chip='';
@@ -2017,7 +2106,7 @@ function renderWhen(){
 
 document.getElementById('lockPass').addEventListener('keydown', e=>{ if(e.key==='Enter'){ if(lockMode==='unlock') lockSubmit(); else document.getElementById('lockPass2').focus(); }});
 document.getElementById('lockPass2').addEventListener('keydown', e=>{ if(e.key==='Enter') lockSubmit(); });
-['addOverlay','catOverlay','menuOverlay','growthOverlay','emojiOverlay','catDetailOverlay','reviewOverlay'].forEach(id=>{ document.getElementById(id).addEventListener('click', e=>{ if(e.target.id===id) document.getElementById(id).classList.remove('on'); }); });
+['addOverlay','catOverlay','menuOverlay','growthOverlay','emojiOverlay','catDetailOverlay','reviewOverlay','payOverlay'].forEach(id=>{ document.getElementById(id).addEventListener('click', e=>{ if(e.target.id===id) document.getElementById(id).classList.remove('on'); }); });
 document.getElementById('padOverlay').addEventListener('click', e=>{ if(e.target.id==='padOverlay') padCancel(); });
 document.getElementById('dlgOverlay').addEventListener('click', e=>{ if(e.target.id==='dlgOverlay') dlgClose(null); });
 document.getElementById('emojiCustom').addEventListener('keydown', e=>{ if(e.key==='Enter') useCustomEmoji(); });
