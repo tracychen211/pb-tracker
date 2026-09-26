@@ -190,8 +190,9 @@
   .empty { text-align: center; color: var(--ink-soft); padding: 30px 10px; font-style: italic; }
 
   /* ---------- three cozy panels ---------- */
-  .panels { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 22px 0 8px; }
-  @media (min-width: 560px){ .panels { grid-template-columns: 1fr 1fr 1fr; } }
+  .panels { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 0 14px; }
+  .panels .panel.sage { grid-column: 1 / -1; }
+  @media (min-width: 560px){ .panels { grid-template-columns: 1fr 1fr 1fr; } .panels .panel.sage { grid-column: auto; } }
   .panel { border-radius: 18px; padding: 16px 16px 18px; position: relative; box-shadow: var(--shadow); border: 1.5px solid rgba(74,64,49,.08); min-height: 132px; }
   .panel .ph { font-family: 'Baloo 2',cursive; font-weight: 700; font-size: 15px; letter-spacing: .04em; text-transform: uppercase; display: flex; align-items: center; gap: 7px; margin-bottom: 10px; }
   .panel .big { font-family: 'Baloo 2',cursive; font-weight: 700; font-size: 30px; line-height: 1; }
@@ -307,6 +308,52 @@
   .tx-amt.move { color: var(--ink-soft); }
   .panel .small b { font-weight: 700; }
 
+  /* ---------- tabs ---------- */
+  body.no-sky header { padding-top: calc(18px + env(safe-area-inset-top)); }
+  .tab > .sec-head:first-child { margin-top: 6px; }
+  .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; display: flex; justify-content: center; pointer-events: none; }
+  .tabbar-in { pointer-events: auto; width: 100%; max-width: 720px; background: var(--card); border: 1.5px solid var(--line); border-bottom: none; border-radius: 26px 26px 0 0; box-shadow: 0 -6px 22px rgba(74,64,49,.10); display: grid; grid-template-columns: repeat(5, 1fr); align-items: end; padding: 8px 6px calc(8px + env(safe-area-inset-bottom)); }
+  .tb { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 2px; font-family: 'Nunito',sans-serif; font-size: 11.5px; font-weight: 700; color: var(--ink-soft); cursor: pointer; padding: 2px 0; }
+  .tb .ic { display: grid; place-items: center; width: 50px; height: 30px; border-radius: 100px; transition: background .15s; }
+  .tb svg { width: 23px; height: 23px; }
+  .tb.act { color: var(--grass-deep); }
+  .tb.act .ic { background: var(--sage); }
+  .tb-mid { display: flex; justify-content: center; }
+  .tb-add { width: 60px; height: 60px; border-radius: 50%; background: var(--terra); color: #fff; border: 4px solid var(--card); font-size: 30px; line-height: 1; cursor: pointer; margin-top: -30px; box-shadow: 0 4px 0 #b06a3e, 0 8px 18px rgba(217,138,82,.4); font-family: 'Baloo 2',cursive; display: grid; place-items: center; padding: 0 0 3px; }
+  .tb-add:active { transform: translateY(3px); box-shadow: 0 1px 0 #b06a3e, 0 4px 10px rgba(217,138,82,.4); }
+
+  .filterbar { display: flex; gap: 8px; margin: -4px 4px 10px; flex-wrap: wrap; }
+  .filterbar button { border: 1.5px solid var(--line); background: var(--card); color: var(--ink-soft); border-radius: 100px; padding: 8px 15px; font-size: 13.5px; font-weight: 700; cursor: pointer; }
+  .filterbar button.act { background: #fbe3d3; border-color: #efc1a3; color: #b0643a; }
+  #txList, #recentList { background: var(--card); border: 1.5px solid var(--line); border-radius: 22px; padding: 4px 14px; box-shadow: var(--shadow); }
+  #txList:has(.empty), #recentList:has(.empty) { padding: 4px; }
+  #txList .tx-group { margin: 14px 0 0; padding-bottom: 4px; border-bottom: 1.5px solid var(--line); }
+
+  /* ---------- stats: summary ---------- */
+  .sum-card { background: var(--card); border: 1.5px solid var(--line); border-radius: 22px; padding: 18px; box-shadow: var(--shadow); margin-bottom: 14px; position: relative; overflow: hidden; }
+  .sum-card .k { font-size: 12.5px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .05em; font-weight: 700; }
+  .sum-big { font-family: 'Baloo 2',cursive; font-size: 38px; font-weight: 700; line-height: 1.05; margin: 4px 0 4px; color: var(--ink); }
+  .sum-cmp { font-size: 13px; color: var(--ink-soft); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .cmp-chip { font-weight: 700; font-size: 12px; padding: 2px 9px; border-radius: 100px; }
+  .cmp-chip.up { background: #fbe3d3; color: #b0643a; }
+  .cmp-chip.down { background: var(--sage); color: var(--sage-ink); }
+  .sum-card .sprig { position: absolute; right: 14px; top: 14px; opacity: .9; }
+  .sum-row { display: flex; gap: 10px; margin-top: 14px; }
+  .sum-row .mini .v { font-size: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* ---------- stats: trend line ---------- */
+  .mini-seg { display: flex; background: var(--card); border: 1.5px solid var(--line); border-radius: 100px; padding: 3px; }
+  .mini-seg button { border: none; background: none; border-radius: 100px; padding: 5px 11px; font-size: 12px; font-weight: 700; color: var(--ink-soft); cursor: pointer; font-family: 'Nunito',sans-serif; }
+  .mini-seg button.act { background: var(--grass-deep); color: #fff; }
+  .trend-card { background: var(--card); border: 1.5px solid var(--line); border-radius: 22px; padding: 14px 12px 10px; box-shadow: var(--shadow); margin-bottom: 14px; }
+  .trend-card svg { width: 100%; height: auto; display: block; overflow: visible; }
+  .trend-card .t-axis { font-family: 'Nunito',sans-serif; font-size: 10px; fill: var(--ink-soft); font-weight: 600; }
+  .trend-card .t-hit { cursor: pointer; }
+  .trend-foot { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--ink-soft); padding: 6px 6px 2px; gap: 8px; }
+  .trend-foot b { color: var(--ink); }
+  .trend-legend { display: inline-flex; align-items: center; gap: 5px; }
+  .trend-legend i { width: 16px; border-top: 2px dashed var(--terra); display: inline-block; }
+
   /* tappable categories */
   .cat.tap, .legend .lg.tap { cursor: pointer; }
   .cat.tap:active { background: var(--bg2); }
@@ -374,7 +421,7 @@
 <input type="file" id="importFile" accept=".pbk,application/json" style="display:none" onchange="importBackup(event)">
 
 <!-- SKY BANNER -->
-<div class="skybar" role="img" aria-label="Header picture"></div>
+<div class="skybar" id="skybar" role="img" aria-label="Header picture"></div>
 
 <header>
   <div class="brand">🌿 Pocket<span>book</span></div>
@@ -407,6 +454,8 @@
   <button class="bb-dismiss" onclick="dismissBackupReminder()" title="Dismiss">✕</button>
 </div>
 
+<!-- ================= HOME ================= -->
+<section class="tab" data-tab="home">
 <div class="hero">
   <svg class="hills" viewBox="0 0 720 54" preserveAspectRatio="none"><path d="M0 54 L0 34 Q120 14 260 30 Q400 46 520 26 Q620 10 720 28 L720 54Z" fill="#cfe0c4"/></svg>
   <div class="hero-label" id="heroLabel">Left to spend this month</div>
@@ -419,7 +468,29 @@
   </div>
 </div>
 
-<div class="mom" id="momLine" style="display:none"></div>
+<!-- THREE COZY PANELS -->
+<div class="panels">
+  <div class="panel sage">
+    <button class="editgoal" onclick="openGrowth()">edit</button>
+    <div class="ph">🌸 Checking growth</div>
+    <div class="big" id="panelSaveAmt">$0</div>
+    <div class="small" id="panelSaveSub">this month</div>
+    <div class="pbar"><i id="panelSaveBar" style="width:0%;background:#5f8541"></i></div>
+    <svg class="corner" width="34" height="34" viewBox="0 0 34 34"><circle cx="17" cy="24" r="8" fill="#5f8541" opacity=".25"/><path d="M17 24 V12" stroke="#5f8541" stroke-width="2.5" stroke-linecap="round"/><path d="M17 16 C12 16 9 13 9 9 C14 9 17 12 17 16Z" fill="#5f8541" opacity=".4"/></svg>
+  </div>
+  <div class="panel blue">
+    <div class="ph">💧 Spent this week</div>
+    <div class="big" id="panelWeekAmt">$0</div>
+    <div class="small" id="panelWeekSub">across all categories</div>
+    <svg class="corner" width="34" height="34" viewBox="0 0 34 34"><ellipse cx="14" cy="16" rx="9" ry="6" fill="#4d86a4" opacity=".25"/><ellipse cx="22" cy="14" rx="7" ry="5" fill="#4d86a4" opacity=".25"/></svg>
+  </div>
+  <div class="panel rose">
+    <div class="ph">🌼 Income</div>
+    <div class="big" id="panelIncAmt">$0</div>
+    <div class="small" id="panelIncSub">this month so far</div>
+    <svg class="corner" width="34" height="34" viewBox="0 0 34 34"><g fill="#b9697a" opacity=".3"><circle cx="17" cy="12" r="4"/><circle cx="12" cy="17" r="4"/><circle cx="22" cy="17" r="4"/><circle cx="17" cy="22" r="4"/></g><circle cx="17" cy="17" r="3" fill="#f0b94a"/></svg>
+  </div>
+</div>
 
 <div class="acct-grid">
   <div class="acct debit">
@@ -448,51 +519,60 @@
   </div>
 </div>
 
-<div class="sec-head"><h2 id="chartTitle">🍃 Where it went</h2></div>
-<div class="chart-card"><div id="chartContent"></div></div>
+<div class="sec-head"><h2>📖 Recent activity</h2><button class="edit" onclick="switchTab('activity')">See all ›</button></div>
+<div id="recentList"></div>
+</section>
 
-<div class="sec-head"><h2 id="bigTitle">🔍 Biggest spending</h2></div>
-<div class="big-card"><div id="bigContent"></div></div>
-
-<div class="sec-head"><h2>🧺 Budgets</h2><button class="edit" onclick="openCatManager()">Categories</button></div>
-<div id="cats" class="cats-grid"></div>
-
-<div class="sec-head"><h2>⏰ When you spend</h2></div>
-<div class="when-card"><div id="whenContent"></div></div>
-
-<!-- THREE COZY PANELS -->
-<div class="panels">
-  <div class="panel sage">
-    <button class="editgoal" onclick="openGrowth()">edit</button>
-    <div class="ph">🌸 Checking growth</div>
-    <div class="big" id="panelSaveAmt">$0</div>
-    <div class="small" id="panelSaveSub">this month</div>
-    <div class="pbar"><i id="panelSaveBar" style="width:0%;background:#5f8541"></i></div>
-    <svg class="corner" width="34" height="34" viewBox="0 0 34 34"><circle cx="17" cy="24" r="8" fill="#5f8541" opacity=".25"/><path d="M17 24 V12" stroke="#5f8541" stroke-width="2.5" stroke-linecap="round"/><path d="M17 16 C12 16 9 13 9 9 C14 9 17 12 17 16Z" fill="#5f8541" opacity=".4"/></svg>
-  </div>
-  <div class="panel blue">
-    <div class="ph">💧 Spent this week</div>
-    <div class="big" id="panelWeekAmt">$0</div>
-    <div class="small" id="panelWeekSub">across all categories</div>
-    <svg class="corner" width="34" height="34" viewBox="0 0 34 34"><ellipse cx="14" cy="16" rx="9" ry="6" fill="#4d86a4" opacity=".25"/><ellipse cx="22" cy="14" rx="7" ry="5" fill="#4d86a4" opacity=".25"/></svg>
-  </div>
-  <div class="panel rose">
-    <div class="ph">🌼 Income</div>
-    <div class="big" id="panelIncAmt">$0</div>
-    <div class="small" id="panelIncSub">this month so far</div>
-    <svg class="corner" width="34" height="34" viewBox="0 0 34 34"><g fill="#b9697a" opacity=".3"><circle cx="17" cy="12" r="4"/><circle cx="12" cy="17" r="4"/><circle cx="22" cy="17" r="4"/><circle cx="17" cy="22" r="4"/></g><circle cx="17" cy="17" r="3" fill="#f0b94a"/></svg>
-  </div>
-</div>
-
+<!-- ================= ACTIVITY ================= -->
+<section class="tab" data-tab="activity" style="display:none">
 <div class="sec-head"><h2 id="activityTitle">📖 Recent activity</h2><button class="edit" onclick="addPaycheck()">+ Income</button></div>
+<div class="filterbar" id="filterBar">
+  <button data-f="all" onclick="setTxFilter('all')">All</button>
+  <button data-f="spend" onclick="setTxFilter('spend')">Spending</button>
+  <button data-f="moves" onclick="setTxFilter('moves')">Money in &amp; out</button>
+</div>
 <div class="sortbar" id="sortBar"><span>Sort</span>
   <button data-sort="date" onclick="setSort('date')">Date</button>
   <button data-sort="amount" onclick="setSort('amount')">Largest</button>
   <button data-sort="category" onclick="setSort('category')">Category</button>
 </div>
 <div id="txList"></div>
+</section>
 
-<button class="fab" onclick="openAdd()">＋ Add expense</button>
+<!-- ================= STATS ================= -->
+<section class="tab" data-tab="stats" style="display:none">
+<div class="sec-head"><h2 id="sumTitle">📊 Overview</h2></div>
+<div class="sum-card" id="sumCard"></div>
+
+<div class="sec-head"><h2>📈 Spending trend</h2>
+  <div class="mini-seg" id="trendSeg"><button data-m="daily" onclick="setTrendMode('daily')">Daily</button><button data-m="total" onclick="setTrendMode('total')">Running total</button></div>
+</div>
+<div class="trend-card"><div id="trendContent"></div></div>
+
+<div class="sec-head"><h2 id="chartTitle">🍃 Where it went</h2></div>
+<div class="chart-card"><div id="chartContent"></div></div>
+
+<div class="sec-head"><h2 id="bigTitle">🔍 Biggest spending</h2></div>
+<div class="big-card"><div id="bigContent"></div></div>
+
+<div class="sec-head"><h2>⏰ When you spend</h2></div>
+<div class="when-card"><div id="whenContent"></div></div>
+</section>
+
+<!-- ================= BUDGETS ================= -->
+<section class="tab" data-tab="budgets" style="display:none">
+<div class="sec-head"><h2>🧺 Budgets</h2><button class="edit" onclick="openCatManager()">Categories</button></div>
+<div id="cats" class="cats-grid"></div>
+</section>
+
+<!-- BOTTOM TAB BAR -->
+<nav class="tabbar"><div class="tabbar-in">
+  <button class="tb" data-tab="home" onclick="switchTab('home')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg></span>Home</button>
+  <button class="tb" data-tab="activity" onclick="switchTab('activity')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="14" height="17" rx="2.5"/><path d="M9 8.5h6M9 12.5h6M9 16.5h3"/></svg></span>Activity</button>
+  <div class="tb-mid"><button class="tb-add" onclick="openAdd()" aria-label="Add expense">＋</button></div>
+  <button class="tb" data-tab="stats" onclick="switchTab('stats')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16"/><path d="M6.5 15.5l4-4.5 3 2.5 4.5-6"/><circle cx="18" cy="7.5" r="1.2" fill="currentColor"/></svg></span>Stats</button>
+  <button class="tb" data-tab="budgets" onclick="switchTab('budgets')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h16l-1.5 8.6a2 2 0 0 1-2 1.7h-9a2 2 0 0 1-2-1.7z"/><path d="M8 10l4-5.5 4 5.5"/></svg></span>Budgets</button>
+</div></nav>
 
 <!-- ADD / EDIT EXPENSE -->
 <div class="overlay" id="addOverlay">
@@ -809,6 +889,7 @@ function finishUnlock(){
   viewMonth = monthKey(); // always open on the current month
   state.month = monthKey();
   ensureDebitBaseline();
+  switchTab('home');
   if(state.name && !getName()) putName(state.name); // restored from a backup on a new device
   updateNameMenu();
   maybeRemindBackup();
@@ -1313,17 +1394,8 @@ function render(){
   document.getElementById('miniBudgetK').textContent = isWeek ? 'Budget/wk' : 'Budget';
   document.getElementById('miniBudget').textContent='$'+fmt(Math.round(budgetShown));
 
-  // month-over-month: compare viewed month vs the month before it, using real kept data
-  const momEl=document.getElementById('momLine');
-  const prevMonthKey = shiftMonth(viewMonth, -1);
-  const prevSpent = r2(state.tx.filter(t=>t.type==='exp' && counts(t) && monthKey(new Date(t.ts))===prevMonthKey).reduce((s,t)=>s+netAmt(t),0));
-  if(!isWeek && prevSpent>0){
-    const diff=totalSpent-prevSpent; const pct=Math.round(Math.abs(diff)/prevSpent*100);
-    momEl.style.display='flex';
-    if(diff>0) momEl.innerHTML=`<span class="arrow up">↑</span> <b style="color:var(--ink)">$${fmt(totalSpent)}</b> spent — ${pct}% more than ${monthLabelFor(prevMonthKey).split(' ')[0]} ($${fmt(prevSpent)}).`;
-    else if(diff<0) momEl.innerHTML=`<span class="arrow down">↓</span> <b style="color:var(--ink)">$${fmt(totalSpent)}</b> spent — ${pct}% less than ${monthLabelFor(prevMonthKey).split(' ')[0]} ($${fmt(prevSpent)}).`;
-    else momEl.innerHTML=`Same spend as ${monthLabelFor(prevMonthKey).split(' ')[0]} ($${fmt(totalSpent)}).`;
-  } else momEl.style.display='none';
+  renderSummary(txExp, totalSpent, spentByCat);
+  renderTrend(txExp, totalBudgetMonthly);
 
   document.getElementById('debitAmt').textContent=fmt(state.debit);
   document.getElementById('walletAmt').textContent=fmt(state.wallet);
@@ -1366,7 +1438,8 @@ function render(){
   document.getElementById('panelWeekAmt').textContent = '$'+fmt(weekSpent);
   document.getElementById('panelIncAmt').textContent = '$'+fmt(r2(state.tx.filter(t=>t.type==='income' && inCurrentMonth(t.ts)).reduce((s,t)=>s+t.amt,0)));
 
-  document.getElementById('activityTitle').textContent = isWeek ? '📖 This week’s activity' : '📖 Recent activity';
+  document.getElementById('activityTitle').textContent = isWeek ? '📖 This week' : '📖 Transactions';
+  renderRecent();
   renderActivity();
   renderWhen();
 }
@@ -1395,15 +1468,160 @@ function txRowHTML(t, fromDetail){
   return `<div class="tx" onclick="${click}"><div class="tx-ic">${m.icon}</div><div class="tx-mid"><div class="t1">${escHtml(t.note || m.name)}</div><div class="t2">${escHtml(m.name)} · ${shortDate(t.ts)} ${chip}${reimbChip}</div></div>${amtHtml}<span class="tx-chev">›</span></div>`;
 }
 
+// ---------- tabs ----------
+let tab='home';
+function switchTab(t){
+  tab=t;
+  document.querySelectorAll('section.tab').forEach(sec=>sec.style.display = sec.dataset.tab===t ? 'block' : 'none');
+  document.querySelectorAll('.tabbar .tb').forEach(b=>b.classList.toggle('act', b.dataset.tab===t));
+  document.getElementById('skybar').style.display = t==='home' ? 'block' : 'none';
+  document.body.classList.toggle('no-sky', t!=='home');
+  window.scrollTo(0,0);
+}
+function renderRecent(){
+  const el=document.getElementById('recentList');
+  const list=state.tx.filter(periodFilter).sort((a,b)=>b.ts-a.ts).slice(0,5);
+  el.innerHTML = list.length ? list.map(t=>txRowHTML(t)).join('') : '<div class="empty">Nothing yet this '+period+'. Tap ＋ to log a purchase.</div>';
+}
+
+// ---------- stats: overview card ----------
+function renderSummary(txExp, totalSpent, spentByCat){
+  const isWeek=period==='week';
+  // previous period: last week, or the month before the one being viewed
+  let prevSpent, prevLbl;
+  if(isWeek){
+    const s0=startOfWeek(), s1=s0-7*864e5;
+    prevSpent=r2(state.tx.filter(t=>t.type==='exp' && counts(t) && t.ts>=s1 && t.ts<s0).reduce((s,t)=>s+netAmt(t),0));
+    prevLbl='last week';
+  } else {
+    const pk=shiftMonth(viewMonth,-1);
+    prevSpent=r2(state.tx.filter(t=>t.type==='exp' && counts(t) && monthKey(new Date(t.ts))===pk).reduce((s,t)=>s+netAmt(t),0));
+    prevLbl=monthLabelFor(pk).split(' ')[0];
+  }
+  // days so far in the period (for the average)
+  let days;
+  if(isWeek) days=((new Date().getDay()+6)%7)+1;
+  else { const [y,m]=viewMonth.split('-').map(Number); days = viewMonth===monthKey() ? new Date().getDate() : new Date(y,m,0).getDate(); }
+  const top=Object.entries(spentByCat).sort((a,b)=>b[1]-a[1])[0];
+  const lbl = isWeek ? 'this week' : (viewMonth===monthKey() ? 'this month' : 'in '+monthLabelFor(viewMonth).split(' ')[0]);
+  let cmp='';
+  if(prevSpent>0){
+    const pct=Math.round((totalSpent-prevSpent)/prevSpent*100);
+    const cls = pct>0 ? 'up' : 'down';
+    cmp=`vs $${fmt(prevSpent)} ${prevLbl} <span class="cmp-chip ${cls}">${pct>0?'↑':'↓'} ${Math.abs(pct)}%</span>`;
+  } else cmp=`Nothing logged ${prevLbl}`;
+  document.getElementById('sumTitle').textContent = isWeek ? '📊 This week' : '📊 '+monthLabelFor(viewMonth).split(' ')[0]+' overview';
+  document.getElementById('sumCard').innerHTML = `
+    <svg class="sprig" width="54" height="54" viewBox="0 0 56 56" fill="none"><ellipse cx="28" cy="50" rx="14" ry="3" fill="#8aab63" opacity=".25"/><path d="M28 50 C28 38 28 30 28 24" stroke="#5f8541" stroke-width="3" stroke-linecap="round"/><path d="M28 32 C20 32 15 27 14 20 C22 20 28 24 28 32Z" fill="#8aab63"/><path d="M28 27 C36 27 42 22 43 15 C34 15 28 20 28 27Z" fill="#9fbd76"/><circle cx="28" cy="16" r="5" fill="#f0b94a"/></svg>
+    <div class="k">Spent ${lbl}</div>
+    <div class="sum-big">$${fmt(totalSpent)}</div>
+    <div class="sum-cmp">${cmp}</div>
+    <div class="sum-row">
+      <div class="mini"><div class="k">Per day</div><div class="v">$${fmt(Math.round(totalSpent/Math.max(1,days)))}</div></div>
+      <div class="mini"><div class="k">Purchases</div><div class="v">${txExp.length}</div></div>
+      <div class="mini"><div class="k">Top</div><div class="v">${top ? catMeta(top[0]).icon+' $'+fmt(Math.round(top[1])) : '—'}</div></div>
+    </div>`;
+}
+
+// ---------- stats: spending trend line chart ----------
+let trendSel=null; // index of the day the user tapped (null = show the peak)
+async function setTrendMode(m){ state.trendMode=m; trendSel=null; await save(); render(); }
+function pickTrendDay(i){ trendSel=i; render(); }
+function smoothPath(pts){
+  if(pts.length<2) return pts.length ? `M${pts[0][0]},${pts[0][1]}` : '';
+  let d=`M${pts[0][0]},${pts[0][1]}`;
+  for(let i=0;i<pts.length-1;i++){
+    const p0=pts[i-1]||pts[i], p1=pts[i], p2=pts[i+1], p3=pts[i+2]||p2, t=0.18;
+    const c1x=p1[0]+(p2[0]-p0[0])*t, c1y=p1[1]+(p2[1]-p0[1])*t, c2x=p2[0]-(p3[0]-p1[0])*t, c2y=p2[1]-(p3[1]-p1[1])*t;
+    d+=` C${c1x.toFixed(1)},${Math.min(c1y, Math.max(p1[1],p2[1])).toFixed(1)} ${c2x.toFixed(1)},${Math.min(c2y, Math.max(p1[1],p2[1])).toFixed(1)} ${p2[0]},${p2[1]}`;
+  }
+  return d;
+}
+// top of the y-axis: 4 even steps with round numbers (0, 8, 16, 24, 32 …)
+function niceMax(v){ if(v<=0) return 8; const st=v/4, p=Math.pow(10,Math.floor(Math.log10(st))); for(const m of [1,2,2.5,3,4,5,6,8,10]){ if(m*p>=st && (m*p>=1 ? Number.isInteger(m*p) : true)) return m*p*4; } return 40*p; }
+function renderTrend(txExp, budgetMonthly){
+  const mode=state.trendMode||'daily', isWeek=period==='week';
+  document.querySelectorAll('#trendSeg button').forEach(b=>b.classList.toggle('act', b.dataset.m===mode));
+  document.querySelector('#trendSeg button[data-m="daily"]').textContent = isWeek ? 'Daily' : 'Weekly';
+  // one bucket per day of the period
+  let n, dayStart, labels, fullLbl;
+  if(isWeek){
+    n=7; dayStart=i=>startOfWeek()+i*864e5; labels=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    fullLbl=i=>new Date(dayStart(i)).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+  } else {
+    const [y,m]=viewMonth.split('-').map(Number); n=new Date(y,m,0).getDate();
+    dayStart=i=>new Date(y,m-1,i+1).getTime(); labels=Array.from({length:n},(_,i)=>String(i+1));
+    fullLbl=i=>new Date(dayStart(i)).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  }
+  const vals=new Array(n).fill(0);
+  txExp.forEach(t=>{ const d=new Date(t.ts); const i = isWeek ? (d.getDay()+6)%7 : d.getDate()-1; if(i>=0&&i<n) vals[i]+=netAmt(t); });
+  // only draw up to today when looking at the current period
+  let todayIdx = isWeek ? (new Date().getDay()+6)%7 : (viewMonth===monthKey() ? new Date().getDate()-1 : n-1);
+  let series;
+  if(mode==='total'){ let run=0; series=vals.slice(0,todayIdx+1).map(v=>r2(run+=v)); }
+  else if(!isWeek){
+    // month view: one point per week of the month (1–7, 8–14, …) so the line reads smoothly
+    const nd=n, [y,m]=viewMonth.split('-').map(Number), mon=monthLabelFor(viewMonth).slice(0,3);
+    const wk=[]; for(let a=0;a<nd;a+=7) wk.push([a, Math.min(nd,a+7)-1]);
+    const wv=wk.map(([a,b])=>r2(vals.slice(a,b+1).reduce((x,y)=>x+y,0)));
+    n=wk.length; labels=wk.map(([a,b])=>`${a+1}–${b+1}`);
+    fullLbl=i=>`${mon} ${wk[i][0]+1}–${wk[i][1]+1}`;
+    todayIdx=Math.floor(todayIdx/7);
+    series=wv.slice(0,todayIdx+1);
+  }
+  else series=vals.slice(0,todayIdx+1).map(r2);
+  const shown=series.length;
+  const budget = isWeek ? budgetMonthly/(30/7) : budgetMonthly;
+  const el=document.getElementById('trendContent');
+  if(series.every(v=>v===0)){ el.innerHTML='<div class="chart-empty">No spending yet this '+period+'.</div>'; return; }
+
+  const W=340, H=190, L=34, R=12, T=34, Bm=24, iw=W-L-R, ih=H-T-Bm;
+  const yMax=niceMax(Math.max(...series, mode==='total' && budget>0 ? budget : 0));
+  const X=i=> L + (n===1?iw/2: i*iw/(n-1));
+  const Y=v=> T + ih - (v/yMax)*ih;
+  const pts=series.map((v,i)=>[+X(i).toFixed(1), +Y(v).toFixed(1)]);
+  let g='';
+  for(let k=0;k<=4;k++){ const v=yMax*k/4, y=Y(v).toFixed(1);
+    g+=`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" stroke="#e0d2af" stroke-width="1" stroke-dasharray="${k?'3 4':''}"/>`;
+    g+=`<text class="t-axis" x="${L-6}" y="${+y+3}" text-anchor="end">${v>=1000?'$'+(v/1000)+'k':'$'+Math.round(v)}</text>`; }
+  const tickIdx = (isWeek || mode!=='total') ? [...Array(n).keys()] : [0,4,9,14,19,24,n-1];
+  tickIdx.forEach(i=>{ g+=`<text class="t-axis" x="${X(i).toFixed(1)}" y="${H-6}" text-anchor="middle">${labels[i]}</text>`; });
+  // budget pace (running total only): straight line from 0 to the full budget
+  if(mode==='total' && budget>0) g+=`<line x1="${X(0)}" y1="${Y(0)}" x2="${X(n-1)}" y2="${Y(budget)}" stroke="#d98a52" stroke-width="1.8" stroke-dasharray="5 5" opacity=".8"/>`;
+  const line=smoothPath(pts);
+  const area=`${line} L${pts[pts.length-1][0]},${Y(0)} L${pts[0][0]},${Y(0)} Z`;
+  g+=`<defs><linearGradient id="tg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#8aab63" stop-opacity=".35"/><stop offset="1" stop-color="#8aab63" stop-opacity="0"/></linearGradient></defs>`;
+  g+=`<path d="${area}" fill="url(#tg)"/><path d="${line}" fill="none" stroke="#5f8541" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>`;
+  const peak = series.indexOf(Math.max(...series));
+  const sel = trendSel!=null && trendSel<shown ? trendSel : (mode==='total' ? shown-1 : peak);
+  pts.forEach((p,i)=>{ if(isWeek || mode!=='total' || i===sel || i===shown-1) g+=`<circle cx="${p[0]}" cy="${p[1]}" r="${i===sel?5:3.5}" fill="${i===sel?'#5f8541':'#fdf8ea'}" stroke="#5f8541" stroke-width="2"/>`; });
+  // callout bubble over the selected day
+  const sp=pts[sel], txt='$'+fmt(Math.round(series[sel])), bw=txt.length*7.4+16;
+  const bx=Math.min(W-R-bw, Math.max(L, sp[0]-bw/2)), by=Math.max(2, sp[1]-34);
+  g+=`<line x1="${sp[0]}" x2="${sp[0]}" y1="${sp[1]+6}" y2="${Y(0)}" stroke="#5f8541" stroke-width="1" stroke-dasharray="2 3" opacity=".5"/>`;
+  g+=`<rect x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${bw.toFixed(1)}" height="24" rx="12" fill="#cfe0c4"/><text x="${(bx+bw/2).toFixed(1)}" y="${(by+16).toFixed(1)}" text-anchor="middle" style="font-family:'Baloo 2',cursive;font-weight:700;font-size:13px;fill:#4d6c34">${txt}</text>`;
+  // wide invisible tap targets, one per day
+  const colW=n===1?iw:iw/(n-1);
+  pts.forEach((p,i)=>{ g+=`<rect class="t-hit" x="${(p[0]-colW/2).toFixed(1)}" y="${T-10}" width="${colW.toFixed(1)}" height="${ih+20}" fill="transparent" onclick="pickTrendDay(${i})"/>`; });
+  const left = r2(budget - series[series.length-1]);
+  const foot = mode==='total'
+    ? `<span><b>${fullLbl(sel)}</b> · $${fmt(series[sel])} so far</span>` + (budget>0 ? `<span class="trend-legend"><i></i>budget pace</span>` : '')
+    : `<span><b>${fullLbl(sel)}</b> · $${fmt(series[sel])}</span><span>${sel===peak?(isWeek?'your biggest day':'your biggest week'):(isWeek?'tap a day':'tap a week')}</span>`;
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Spending trend">${g}</svg><div class="trend-foot">${foot}</div>`;
+}
+
 // ---------- activity list with sorting ----------
+let txFilter='all';
+function setTxFilter(f){ txFilter=f; renderActivity(); }
 async function setSort(k){ state.txSort=k; await save(); renderActivity(); }
 function txValue(t){ return t.type==='exp' ? netAmt(t) : t.amt; }
 function renderActivity(){
   const sort=state.txSort||'date';
   document.querySelectorAll('#sortBar button').forEach(b=>b.classList.toggle('act', b.dataset.sort===sort));
   const txEl=document.getElementById('txList');
-  const list = state.tx.filter(periodFilter);
-  if(list.length===0){ txEl.innerHTML='<div class="empty">No transactions this '+period+' yet. Tap “Add expense” to log one.</div>'; return; }
+  document.querySelectorAll('#filterBar button').forEach(b=>b.classList.toggle('act', b.dataset.f===txFilter));
+  const list = state.tx.filter(periodFilter).filter(t=> txFilter==='all' || (txFilter==='spend' ? t.type==='exp' : t.type!=='exp'));
+  if(list.length===0){ txEl.innerHTML='<div class="empty">Nothing here this '+period+' yet.</div>'; return; }
   if(sort==='amount'){
     // purchases largest → smallest; paychecks/payoffs/withdrawals listed after
     const exp=list.filter(t=>t.type==='exp').sort((a,b)=>txValue(b)-txValue(a) || b.ts-a.ts);
