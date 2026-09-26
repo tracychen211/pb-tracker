@@ -399,7 +399,7 @@
   .tod-row .bar { flex: 1; }
   .tod-row .v { font-family: 'Baloo 2',cursive; font-weight: 700; width: 56px; text-align: right; flex-shrink: 0; }
   /* ---------- wallpaper: cozy window picture behind everything, softened with a cream wash ---------- */
-  html { background: #e9c9cf; }
+  html { background: #e9c9cf; overflow-x: hidden; }
   html body { background: transparent; background-image: none; }
   body::before { content: ''; position: fixed; inset: 0; z-index: -2; background: #e9c9cf url('bg.jpg') center top / cover no-repeat; }
   body::after { content: ''; position: fixed; inset: 0; z-index: -1; background: rgba(250,240,225,.38); }
@@ -421,6 +421,14 @@
   .lock { background: #e9c9cf url('bg.jpg') center top / cover no-repeat; align-items: flex-end; }
   .lock-card { background: rgba(253,248,234,.8); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-color: rgba(255,255,255,.6); margin: auto 0 0; padding: 18px 18px 16px; }
   .lock-card .sprout { display: none; }
+  /* ---------- tab switch animation ---------- */
+  @keyframes tabInR { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: none; } }
+  @keyframes tabInL { from { opacity: 0; transform: translateX(-18px); } to { opacity: 1; transform: none; } }
+  section.tab.tab-in-r { animation: tabInR .26s cubic-bezier(.2,.8,.3,1); }
+  section.tab.tab-in-l { animation: tabInL .26s cubic-bezier(.2,.8,.3,1); }
+  .tb .ic svg { transition: transform .2s; }
+  .tb.act .ic svg { transform: translateY(-1px) scale(1.08); }
+  @media (prefers-reduced-motion: reduce) { section.tab.tab-in-r, section.tab.tab-in-l { animation: none; } }
 </style>
 </head>
 <body>
@@ -448,6 +456,7 @@
     <button class="kb-link" id="kbToggle" onclick="toggleLockKeyboard()">Use keyboard instead</button>
     <div class="lock-warn" id="lockWarn">🌱 There's no password reset. Forget this passcode and your saved data can't be recovered — that's what keeps it private. Export a backup regularly.</div>
     <div class="lock-import" id="lockImport">Have an encrypted backup file? <button onclick="document.getElementById('importFile').click()">Import it</button></div>
+    <div class="lock-import" id="lockForgot" style="display:none">Forgot your passcode? <button onclick="forgotPasscode()" style="color:var(--accent)">Reset the app</button></div>
   </div>
 </div>
 <input type="file" id="importFile" accept=".pbk,application/json" style="display:none" onchange="importBackup(event)">
@@ -850,10 +859,24 @@ async function setName(){
 }
 function updateNameMenu(){ const el=document.getElementById('nameSmall'); if(el) el.textContent = getName() ? `Shows “Welcome back, ${getName()}”` : 'Shows on the lock screen'; }
 
+// Forgotten passcode: the data is encrypted with it and can't be recovered, so the only way in is to start fresh.
+function forgotPasscode(){
+  if(!confirm('Forgot your passcode?\n\nYour data is locked with it and there\u2019s no way to recover it \u2014 that\u2019s what keeps it private.\n\nResetting ERASES everything saved on this device and starts fresh with a new passcode.')) return;
+  const typed=prompt('This can\u2019t be undone. Backup files made with the old passcode will still need that passcode.\n\nType RESET to erase this device\u2019s data:');
+  if(typed===null) return;
+  if(typed.trim().toUpperCase()!=='RESET'){ alert('Not reset \u2014 you didn\u2019t type RESET.'); return; }
+  try { localStorage.removeItem(STORE_KEY); localStorage.removeItem(NAME_KEY); } catch(e){}
+  passcode=null; state=null;
+  initLock();
+  document.getElementById('lockErr').textContent='';
+  alert('Done. Pick a new passcode to start fresh \u2014 or import a backup if you remember its passcode.');
+}
+
 let lockMode='new', lockBuf='', lockStep=1, lockFirst='', kbMode=false;
 function lockScreenOn(){ return document.getElementById('lockScreen').classList.contains('on'); }
 function setLockText(){
   const t=document.getElementById('lockTitle'), d=document.getElementById('lockDesc'), w=document.getElementById('lockWarn');
+  document.getElementById('lockForgot').style.display = lockMode==='unlock' ? 'block' : 'none';
   if(lockMode==='unlock'){ const nm=getName(); t.textContent = nm ? `Welcome back, ${nm}` : 'Welcome back'; d.textContent='Enter your passcode to unlock your data.'; w.style.display='none'; }
   else if(lockStep===2){ t.textContent='Confirm passcode'; d.textContent='Type it once more.'; w.style.display='block'; }
   else { t.textContent='Set a passcode'; d.textContent='Pick a passcode (at least 4 digits) to encrypt your data on this device.'; w.style.display='block'; }
@@ -1502,10 +1525,18 @@ function txRowHTML(t, fromDetail){
 }
 
 // ---------- tabs ----------
-let tab='home';
+let tab='home', prevTab='home';
 function switchTab(t){
   tab=t;
-  document.querySelectorAll('section.tab').forEach(sec=>sec.style.display = sec.dataset.tab===t ? 'block' : 'none');
+  // slide in from the side you're heading toward (Home → Activity → Stats → Budgets)
+  const order=['home','activity','stats','budgets'], dir = order.indexOf(t) >= order.indexOf(prevTab) ? 'r' : 'l';
+  document.querySelectorAll('section.tab').forEach(sec=>{
+    const on = sec.dataset.tab===t;
+    sec.style.display = on ? 'block' : 'none';
+    sec.classList.remove('tab-in-r','tab-in-l');
+    if(on && t!==prevTab){ void sec.offsetWidth; sec.classList.add('tab-in-'+dir); }
+  });
+  prevTab=t;
   document.querySelectorAll('.tabbar .tb').forEach(b=>b.classList.toggle('act', b.dataset.tab===t));
   window.scrollTo(0,0);
 }
