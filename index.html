@@ -46,9 +46,10 @@
   button { font-family: 'Nunito', sans-serif; }
 
   /* ---------- decorative sky banner ---------- */
-  .skybar { position: relative; margin: 0 -16px 0; height: min(56vw, 300px); overflow: hidden;
-    background: #a9d4e6 url('header.jpg') center 45% / cover no-repeat; }
-  .skybar::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 24%;
+  /* header picture: a wide strip on its own cream, softly fading into the page */
+  .skybar { position: relative; margin: 0 -16px 0; aspect-ratio: 938 / 264; max-height: 230px; overflow: hidden;
+    background: #fffbe8 url('header.png') center bottom / contain no-repeat; padding-top: env(safe-area-inset-top); }
+  .skybar::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 16%;
     background: linear-gradient(180deg, rgba(243,234,210,0) 0%, var(--bg) 100%); }
 
   /* Lock */
@@ -147,7 +148,7 @@
   .chart-card { background: var(--card); border: 1.5px solid var(--line); border-radius: 22px; padding: 20px; box-shadow: var(--shadow); margin-bottom: 14px; }
   .chart-wrap { display: flex; align-items: center; gap: 20px; }
   .donut { width: 130px; height: 130px; flex-shrink: 0; position: relative; }
-  .donut .center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .donut .center { pointer-events: none; position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
   .donut .center .ct-amt { font-family: 'Baloo 2',cursive; font-size: 20px; font-weight: 700; line-height: 1; }
   .donut .center .ct-lbl { font-size: 10px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .04em; margin-top: 3px; font-weight: 700; }
   .single-cat { display: flex; align-items: center; gap: 16px; padding: 4px 2px; }
@@ -352,6 +353,19 @@
   .trend-foot { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--ink-soft); padding: 6px 6px 2px; gap: 8px; }
   .trend-foot b { color: var(--ink); }
   .trend-legend { display: inline-flex; align-items: center; gap: 5px; }
+  .drill { margin-top: 8px; border-top: 1.5px dashed var(--line); padding: 8px 4px 0; animation: drillIn .2s ease; }
+  @keyframes drillIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+  .drill-head { display: flex; align-items: center; gap: 8px; padding: 2px 0 2px; }
+  .drill-head b { font-family: 'Baloo 2',cursive; font-size: 15.5px; font-weight: 700; }
+  .drill-head span { flex: 1; font-size: 12.5px; color: var(--ink-soft); }
+  .drill-head button { background: var(--bg); border: 1.5px solid var(--line); border-radius: 100px; width: 30px; height: 30px; cursor: pointer; color: var(--ink-soft); font-size: 12px; flex-shrink: 0; }
+  .drill .tx { padding: 10px 0; }
+  .dow .col { cursor: pointer; }
+  .dow .col.sel i { background: var(--grass-deep); }
+  .dow .col.sel .d { color: var(--grass-deep); }
+  .dow .col.dim i { opacity: .45; }
+  .tod-row { cursor: pointer; border-radius: 10px; }
+  .tod-row.sel .lbl { color: var(--grass-deep); font-weight: 700; }
   .trend-legend i { width: 16px; border-top: 2px dashed var(--terra); display: inline-block; }
 
   /* tappable categories */
@@ -1299,7 +1313,7 @@ function renderDonut(spentByCat, total){
   const segs=entries.map(e=>{
     const len=(e.v/total)*C;
     const gap=2; // tiny gap between segments for definition
-    const seg=`<circle r="${R}" cx="65" cy="65" fill="none" stroke="${e.c.color}" stroke-width="18" stroke-linecap="round" stroke-dasharray="${Math.max(0,len-gap)} ${C-Math.max(0,len-gap)}" stroke-dashoffset="${-off}" transform="rotate(-90 65 65)"/>`;
+    const seg=`<circle ${e.c.id?`onclick="openCatDetail('${e.c.id}')" style="cursor:pointer"`:''} r="${R}" cx="65" cy="65" fill="none" stroke="${e.c.color}" stroke-width="18" stroke-linecap="round" stroke-dasharray="${Math.max(0,len-gap)} ${C-Math.max(0,len-gap)}" stroke-dashoffset="${-off}" transform="rotate(-90 65 65)"/>`;
     off+=len; return seg;
   }).join('');
   const legend=entries.map(e=>`<div class="lg ${e.c.id?'tap':''}" ${e.c.id?`onclick="openCatDetail('${e.c.id}')"`:''}><span class="sw" style="background:${e.c.color}"></span><span class="nm">${e.c.icon} ${escHtml(e.c.name)}</span><span class="vl">$${fmt(r2(e.v))}</span></div>`).join('');
@@ -1524,9 +1538,9 @@ function renderSummary(txExp, totalSpent, spentByCat){
 }
 
 // ---------- stats: spending trend line chart ----------
-let trendSel=null; // index of the day the user tapped (null = show the peak)
+let trendSel=null, trendKey='';   // which bar/day is tapped open (null = none)
 async function setTrendMode(m){ state.trendMode=m; trendSel=null; await save(); render(); }
-function pickTrendDay(i){ trendSel=i; render(); }
+function pickTrendDay(i){ trendSel = (i===null || trendSel===i) ? null : i; render(); }  // tap again to close
 function smoothPath(pts){
   if(pts.length<2) return pts.length ? `M${pts[0][0]},${pts[0][1]}` : '';
   let d=`M${pts[0][0]},${pts[0][1]}`;
@@ -1539,75 +1553,100 @@ function smoothPath(pts){
 }
 // top of the y-axis: 4 even steps with round numbers (0, 8, 16, 24, 32 …)
 function niceMax(v){ if(v<=0) return 8; const st=v/4, p=Math.pow(10,Math.floor(Math.log10(st))); for(const m of [1,2,2.5,3,4,5,6,8,10]){ if(m*p>=st && (m*p>=1 ? Number.isInteger(m*p) : true)) return m*p*4; } return 40*p; }
+// List of purchases that sits under a chart after you tap part of it
+function drillHTML(title, list, closeJs, note){
+  const rows=[...list].sort((a,b)=>b.ts-a.ts);
+  const total=r2(rows.reduce((x,t)=>x+netAmt(t),0));
+  const shown=rows.slice(0,30);
+  return `<div class="drill"><div class="drill-head"><b>${title}</b><span>$${fmt(total)} · ${rows.length} ${rows.length===1?'purchase':'purchases'}</span><button onclick="${closeJs}" aria-label="Close">✕</button></div>`+
+    (rows.length ? shown.map(t=>txRowHTML(t)).join('') : '<div class="empty" style="padding:14px">No purchases here.</div>')+
+    (rows.length>shown.length ? `<div class="pace" style="text-align:center;padding:6px">+${rows.length-shown.length} more</div>` : '')+
+    (note ? `<div class="pace" style="padding:4px 2px 2px">${note}</div>` : '')+`</div>`;
+}
 function renderTrend(txExp, budgetMonthly){
   const mode=state.trendMode||'daily', isWeek=period==='week';
   document.querySelectorAll('#trendSeg button').forEach(b=>b.classList.toggle('act', b.dataset.m===mode));
   document.querySelector('#trendSeg button[data-m="daily"]').textContent = isWeek ? 'Daily' : 'Weekly';
-  // one bucket per day of the period
-  let n, dayStart, labels, fullLbl;
-  if(isWeek){
-    n=7; dayStart=i=>startOfWeek()+i*864e5; labels=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-    fullLbl=i=>new Date(dayStart(i)).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-  } else {
-    const [y,m]=viewMonth.split('-').map(Number); n=new Date(y,m,0).getDate();
-    dayStart=i=>new Date(y,m-1,i+1).getTime(); labels=Array.from({length:n},(_,i)=>String(i+1));
-    fullLbl=i=>new Date(dayStart(i)).toLocaleDateString('en-US',{month:'short',day:'numeric'});
-  }
-  const vals=new Array(n).fill(0);
-  txExp.forEach(t=>{ const d=new Date(t.ts); const i = isWeek ? (d.getDay()+6)%7 : d.getDate()-1; if(i>=0&&i<n) vals[i]+=netAmt(t); });
-  // only draw up to today when looking at the current period
-  let todayIdx = isWeek ? (new Date().getDay()+6)%7 : (viewMonth===monthKey() ? new Date().getDate()-1 : n-1);
-  let series;
-  if(mode==='total'){ let run=0; series=vals.slice(0,todayIdx+1).map(v=>r2(run+=v)); }
-  else if(!isWeek){
-    // month view: one point per week of the month (1–7, 8–14, …) so the line reads smoothly
-    const nd=n, [y,m]=viewMonth.split('-').map(Number), mon=monthLabelFor(viewMonth).slice(0,3);
-    const wk=[]; for(let a=0;a<nd;a+=7) wk.push([a, Math.min(nd,a+7)-1]);
-    const wv=wk.map(([a,b])=>r2(vals.slice(a,b+1).reduce((x,y)=>x+y,0)));
-    n=wk.length; labels=wk.map(([a,b])=>`${a+1}–${b+1}`);
-    fullLbl=i=>`${mon} ${wk[i][0]+1}–${wk[i][1]+1}`;
-    todayIdx=Math.floor(todayIdx/7);
-    series=wv.slice(0,todayIdx+1);
-  }
-  else series=vals.slice(0,todayIdx+1).map(r2);
-  const shown=series.length;
-  const budget = isWeek ? budgetMonthly/(30/7) : budgetMonthly;
+  const key=period+viewMonth+mode; if(key!==trendKey){ trendKey=key; trendSel=null; }
   const el=document.getElementById('trendContent');
-  if(series.every(v=>v===0)){ el.innerHTML='<div class="chart-empty">No spending yet this '+period+'.</div>'; return; }
+  if(!txExp.length){ el.innerHTML='<div class="chart-empty">No spending yet this '+period+'.</div>'; return; }
+  const sum=l=>r2(l.reduce((x,t)=>x+netAmt(t),0));
 
-  const W=340, H=190, L=34, R=12, T=34, Bm=24, iw=W-L-R, ih=H-T-Bm;
-  const yMax=niceMax(Math.max(...series, mode==='total' && budget>0 ? budget : 0));
-  const X=i=> L + (n===1?iw/2: i*iw/(n-1));
-  const Y=v=> T + ih - (v/yMax)*ih;
-  const pts=series.map((v,i)=>[+X(i).toFixed(1), +Y(v).toFixed(1)]);
-  let g='';
-  for(let k=0;k<=4;k++){ const v=yMax*k/4, y=Y(v).toFixed(1);
+  // purchases grouped by day of the period
+  let nd, dayIdx, dayFull;
+  if(isWeek){
+    nd=7; dayIdx=t=>(new Date(t.ts).getDay()+6)%7;
+    dayFull=i=>new Date(startOfWeek()+i*864e5).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+  } else {
+    const [y,m]=viewMonth.split('-').map(Number); nd=new Date(y,m,0).getDate(); dayIdx=t=>new Date(t.ts).getDate()-1;
+    dayFull=i=>new Date(y,m-1,i+1).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+  }
+  const days=Array.from({length:nd},()=>[]);
+  txExp.forEach(t=>{ const i=dayIdx(t); if(i>=0&&i<nd) days[i].push(t); });
+  const todayD = isWeek ? (new Date().getDay()+6)%7 : (viewMonth===monthKey() ? new Date().getDate()-1 : nd-1);
+
+  const W=340, H=196, L=34, R=10, T=26, Bm=24, iw=W-L-R, ih=H-T-Bm;
+  const kfmt=v=>v>=1000?'$'+(v/1000).toFixed(1)+'k':'$'+Math.round(v);
+  const grid=(yMax,Y)=>{ let g=''; for(let k=0;k<=4;k++){ const v=yMax*k/4, y=Y(v).toFixed(1);
     g+=`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" stroke="#e0d2af" stroke-width="1" stroke-dasharray="${k?'3 4':''}"/>`;
-    g+=`<text class="t-axis" x="${L-6}" y="${+y+3}" text-anchor="end">${v>=1000?'$'+(v/1000)+'k':'$'+Math.round(v)}</text>`; }
-  const tickIdx = (isWeek || mode!=='total') ? [...Array(n).keys()] : [0,4,9,14,19,24,n-1];
-  tickIdx.forEach(i=>{ g+=`<text class="t-axis" x="${X(i).toFixed(1)}" y="${H-6}" text-anchor="middle">${labels[i]}</text>`; });
-  // budget pace (running total only): straight line from 0 to the full budget
-  if(mode==='total' && budget>0) g+=`<line x1="${X(0)}" y1="${Y(0)}" x2="${X(n-1)}" y2="${Y(budget)}" stroke="#d98a52" stroke-width="1.8" stroke-dasharray="5 5" opacity=".8"/>`;
-  const line=smoothPath(pts);
-  const area=`${line} L${pts[pts.length-1][0]},${Y(0)} L${pts[0][0]},${Y(0)} Z`;
+    g+=`<text class="t-axis" x="${L-6}" y="${+y+3}" text-anchor="end">${kfmt(v)}</text>`; } return g; };
+
+  if(mode!=='total'){
+    // ---- BAR CHART: one bar per day (week view) or per week of the month ----
+    let buckets;
+    if(isWeek) buckets=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map((lbl,i)=>({lbl, full:dayFull(i), list:days[i], future:i>todayD}));
+    else { const mon=monthLabelFor(viewMonth).slice(0,3); buckets=[];
+      for(let a=0;a<nd;a+=7){ const b=Math.min(nd,a+7)-1; buckets.push({lbl:`${a+1}–${b+1}`, full:`${mon} ${a+1}–${b+1}`, list:days.slice(a,b+1).flat(), future:a>todayD}); } }
+    const n=buckets.length, vals=buckets.map(b=>sum(b.list));
+    const yMax=niceMax(Math.max(...vals)), Y=v=>T+ih-(v/yMax)*ih;
+    const peak=vals.indexOf(Math.max(...vals)), sel=trendSel!=null && trendSel<n ? trendSel : null;
+    const slot=iw/n, bw=Math.min(34, slot*0.62);
+    let g=grid(yMax,Y);
+    buckets.forEach((bk,i)=>{
+      const x=L+slot*i+(slot-bw)/2, v=vals[i], h=Math.max(v>0?4:0, (v/yMax)*ih), y=T+ih-h, cx=x+bw/2;
+      const color = i===sel ? '#5f8541' : (sel==null && i===peak ? '#d98a52' : '#8fc4dd');
+      if(!bk.future){
+        if(h>0) g+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="${Math.min(9,bw/2)}" fill="${color}" opacity="${sel!=null&&i!==sel?.5:1}"/>`;
+        else g+=`<rect x="${x.toFixed(1)}" y="${(T+ih-3).toFixed(1)}" width="${bw.toFixed(1)}" height="3" rx="1.5" fill="#e0d2af"/>`;
+        if(v>0) g+=`<text x="${cx.toFixed(1)}" y="${(y-6).toFixed(1)}" text-anchor="middle" style="font-family:'Baloo 2',cursive;font-weight:700;font-size:11.5px;fill:${i===sel?'#4d6c34':'#8a7d63'}">${kfmt(v)}</text>`;
+      }
+      g+=`<text class="t-axis" x="${cx.toFixed(1)}" y="${H-6}" text-anchor="middle" style="${i===sel?'fill:#4d6c34;font-weight:800':''}${bk.future?';opacity:.45':''}">${bk.lbl}</text>`;
+      if(!bk.future) g+=`<rect class="t-hit" x="${(L+slot*i).toFixed(1)}" y="${T-18}" width="${slot.toFixed(1)}" height="${ih+40}" fill="transparent" onclick="pickTrendDay(${i})"/>`;
+    });
+    const foot = sel!=null
+      ? drillHTML(buckets[sel].full, buckets[sel].list, 'pickTrendDay(null)')
+      : `<div class="trend-foot"><span>Biggest ${isWeek?'day':'week'}: <b>${buckets[peak].full}</b> · $${fmt(vals[peak])}</span><span>tap a bar 👆</span></div>`;
+    el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Spending by ${isWeek?'day':'week'}">${g}</svg>${foot}`;
+    return;
+  }
+
+  // ---- RUNNING TOTAL: line that climbs through the period, against budget pace ----
+  let run=0; const series=days.slice(0,todayD+1).map(l=>r2(run+=sum(l)));
+  const budget = isWeek ? budgetMonthly/(30/7) : budgetMonthly;
+  const n=nd, yMax=niceMax(Math.max(...series, budget>0?budget:0)), Y=v=>T+ih-(v/yMax)*ih;
+  const X=i=>L+(n===1?iw/2:i*iw/(n-1));
+  const pts=series.map((v,i)=>[+X(i).toFixed(1), +Y(v).toFixed(1)]);
+  let g=grid(yMax,Y);
+  const ticks = isWeek ? [...Array(7).keys()] : [0,4,9,14,19,24,n-1];
+  const tl = isWeek ? ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] : null;
+  ticks.forEach(i=>{ g+=`<text class="t-axis" x="${X(i).toFixed(1)}" y="${H-6}" text-anchor="middle">${tl?tl[i]:i+1}</text>`; });
+  if(budget>0) g+=`<line x1="${X(0)}" y1="${Y(0)}" x2="${X(n-1)}" y2="${Y(budget)}" stroke="#d98a52" stroke-width="1.8" stroke-dasharray="5 5" opacity=".8"/>`;
+  const line=smoothPath(pts), area=`${line} L${pts[pts.length-1][0]},${Y(0)} L${pts[0][0]},${Y(0)} Z`;
   g+=`<defs><linearGradient id="tg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#8aab63" stop-opacity=".35"/><stop offset="1" stop-color="#8aab63" stop-opacity="0"/></linearGradient></defs>`;
   g+=`<path d="${area}" fill="url(#tg)"/><path d="${line}" fill="none" stroke="#5f8541" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>`;
-  const peak = series.indexOf(Math.max(...series));
-  const sel = trendSel!=null && trendSel<shown ? trendSel : (mode==='total' ? shown-1 : peak);
-  pts.forEach((p,i)=>{ if(isWeek || mode!=='total' || i===sel || i===shown-1) g+=`<circle cx="${p[0]}" cy="${p[1]}" r="${i===sel?5:3.5}" fill="${i===sel?'#5f8541':'#fdf8ea'}" stroke="#5f8541" stroke-width="2"/>`; });
-  // callout bubble over the selected day
+  const sel = trendSel!=null && trendSel<series.length ? trendSel : series.length-1;
   const sp=pts[sel], txt='$'+fmt(Math.round(series[sel])), bw=txt.length*7.4+16;
-  const bx=Math.min(W-R-bw, Math.max(L, sp[0]-bw/2)), by=Math.max(2, sp[1]-34);
+  const bx=Math.min(W-R-bw, Math.max(L, sp[0]-bw/2)), by=Math.max(0, sp[1]-34);
   g+=`<line x1="${sp[0]}" x2="${sp[0]}" y1="${sp[1]+6}" y2="${Y(0)}" stroke="#5f8541" stroke-width="1" stroke-dasharray="2 3" opacity=".5"/>`;
+  g+=`<circle cx="${sp[0]}" cy="${sp[1]}" r="5" fill="#5f8541" stroke="#fdf8ea" stroke-width="2"/>`;
   g+=`<rect x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${bw.toFixed(1)}" height="24" rx="12" fill="#cfe0c4"/><text x="${(bx+bw/2).toFixed(1)}" y="${(by+16).toFixed(1)}" text-anchor="middle" style="font-family:'Baloo 2',cursive;font-weight:700;font-size:13px;fill:#4d6c34">${txt}</text>`;
-  // wide invisible tap targets, one per day
   const colW=n===1?iw:iw/(n-1);
   pts.forEach((p,i)=>{ g+=`<rect class="t-hit" x="${(p[0]-colW/2).toFixed(1)}" y="${T-10}" width="${colW.toFixed(1)}" height="${ih+20}" fill="transparent" onclick="pickTrendDay(${i})"/>`; });
-  const left = r2(budget - series[series.length-1]);
-  const foot = mode==='total'
-    ? `<span><b>${fullLbl(sel)}</b> · $${fmt(series[sel])} so far</span>` + (budget>0 ? `<span class="trend-legend"><i></i>budget pace</span>` : '')
-    : `<span><b>${fullLbl(sel)}</b> · $${fmt(series[sel])}</span><span>${sel===peak?(isWeek?'your biggest day':'your biggest week'):(isWeek?'tap a day':'tap a week')}</span>`;
-  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Spending trend">${g}</svg><div class="trend-foot">${foot}</div>`;
+  const left=r2(budget*(series.length/n)-series[series.length-1]);
+  const foot = trendSel!=null && trendSel<series.length
+    ? drillHTML(dayFull(sel), days[sel], 'pickTrendDay(null)', `$${fmt(series[sel])} spent so far by this day`)
+    : `<div class="trend-foot"><span><b>$${fmt(series[series.length-1])}</b> so far${budget>0?` · ${left>=0?'$'+fmt(Math.round(left))+' under':'$'+fmt(Math.round(-left))+' over'} pace`:''}</span>${budget>0?'<span class="trend-legend"><i></i>budget pace</span>':''}</div>`;
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Running total">${g}</svg>${foot}`;
 }
 
 // ---------- activity list with sorting ----------
@@ -1664,27 +1703,35 @@ function openCatDetail(id){
 }
 
 // ---------- when you spend (last 90 days) ----------
+let whenSel=null; // {k:'dow'|'tod', i}
+function pickWhen(k,i){ whenSel = (whenSel && whenSel.k===k && whenSel.i===i) ? null : {k,i}; renderWhen(); }
 function renderWhen(){
   const el=document.getElementById('whenContent');
   const since=Date.now()-90*864e5;
   const ex=state.tx.filter(t=>t.type==='exp' && counts(t) && t.ts>=since && netAmt(t)>0);
   if(ex.length<5){ el.innerHTML='<div class="chart-empty">Log a few more purchases to see your patterns.</div>'; return; }
   const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], FULL=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  const dowI=t=>(new Date(t.ts).getDay()+6)%7;
   const dow=[0,0,0,0,0,0,0];
-  ex.forEach(t=>{ dow[(new Date(t.ts).getDay()+6)%7]+=netAmt(t); });
+  ex.forEach(t=>{ dow[dowI(t)]+=netAmt(t); });
   const maxD=Math.max(...dow), topD=dow.indexOf(maxD), total=dow.reduce((a,b)=>a+b,0);
   // time of day only uses purchases logged when they happened (backdated ones have no real time)
   const SLOTS=[['Morning','5am–12pm',5,12],['Afternoon','12–5pm',12,17],['Evening','5–10pm',17,22],['Late night','10pm–5am',22,29]];
+  const todI=t=>{ let h=new Date(t.ts).getHours(); if(h<5) h+=24; return SLOTS.findIndex(x=>h>=x[2]&&h<x[3]); };
+  const timed=ex.filter(t=>!t.backdated);
   const tod=[0,0,0,0], todN=[0,0,0,0];
-  ex.filter(t=>!t.backdated).forEach(t=>{ let h=new Date(t.ts).getHours(); if(h<5) h+=24; const i=SLOTS.findIndex(x=>h>=x[2]&&h<x[3]); if(i>=0){ tod[i]+=netAmt(t); todN[i]++; } });
+  timed.forEach(t=>{ const i=todI(t); if(i>=0){ tod[i]+=netAmt(t); todN[i]++; } });
   const todTotal=tod.reduce((a,b)=>a+b,0), maxT=Math.max(...tod), topT=tod.indexOf(maxT);
   const k=v=>v>=1000?'$'+(v/1000).toFixed(1)+'k':'$'+Math.round(v);
+  const sd = whenSel&&whenSel.k==='dow' ? whenSel.i : null, st = whenSel&&whenSel.k==='tod' ? whenSel.i : null;
   let html=`<div class="when-insight">You spend the most on <b>${FULL[topD]}s</b> (${Math.round(maxD/total*100)}% of spending)`+
     (todTotal>0 ? `, mostly in the <b>${SLOTS[topT][0].toLowerCase()}</b>.` : '.')+
-    ` <span style="color:var(--ink-soft);font-size:12.5px">Last 90 days · ${ex.length} purchases</span></div>`;
-  html+='<h4>By day of week</h4><div class="dow">'+dow.map((v,i)=>`<div class="col ${i===topD?'top':''}"><span class="amt">${v>0?k(v):''}</span><i style="height:${maxD>0?Math.max(3,v/maxD*78):3}px"></i><span class="d">${DAYS[i]}</span></div>`).join('')+'</div>';
+    ` <span style="color:var(--ink-soft);font-size:12.5px">Last 90 days · ${ex.length} purchases · tap to see them</span></div>`;
+  html+='<h4>By day of week</h4><div class="dow">'+dow.map((v,i)=>`<div class="col ${i===topD&&sd==null?'top':''} ${i===sd?'sel':''} ${sd!=null&&i!==sd?'dim':''}" onclick="pickWhen('dow',${i})"><span class="amt">${v>0?k(v):''}</span><i style="height:${maxD>0?Math.max(3,v/maxD*78):3}px"></i><span class="d">${DAYS[i]}</span></div>`).join('')+'</div>';
+  if(sd!=null) html+=drillHTML(FULL[sd]+'s', ex.filter(t=>dowI(t)===sd), `pickWhen('dow',${sd})`);
   if(todTotal>0){
-    html+='<h4>By time of day</h4>'+SLOTS.map((x,i)=>`<div class="tod-row"><div class="lbl">${x[0]}<small>${x[1]} · ${todN[i]} ${todN[i]===1?'buy':'buys'}</small></div><div class="bar"><i style="width:${maxT>0?tod[i]/maxT*100:0}%;background:${i===topT?'var(--terra)':'var(--sky)'}"></i></div><div class="v">${k(tod[i])}</div></div>`).join('');
+    html+='<h4 style="margin-top:14px">By time of day</h4>'+SLOTS.map((x,i)=>`<div class="tod-row ${i===st?'sel':''}" onclick="pickWhen('tod',${i})"><div class="lbl">${x[0]}<small>${x[1]} · ${todN[i]} ${todN[i]===1?'buy':'buys'}</small></div><div class="bar"><i style="width:${maxT>0?tod[i]/maxT*100:0}%;background:${i===st?'var(--grass-deep)':(st==null&&i===topT?'var(--terra)':'var(--sky)')}"></i></div><div class="v">${k(tod[i])}</div></div>`).join('');
+    if(st!=null) html+=drillHTML(SLOTS[st][0]+' · '+SLOTS[st][1], timed.filter(t=>todI(t)===st), `pickWhen('tod',${st})`);
   }
   el.innerHTML=html;
 }
