@@ -581,7 +581,7 @@
 <div class="panels">
   <div class="panel sage">
     <button class="editgoal" onclick="openGrowth()">edit</button>
-    <div class="ph">🌸 Checking growth</div>
+    <div class="ph">🌸 Money growth</div>
     <div class="big" id="panelSaveAmt">$0</div>
     <div class="small" id="panelSaveSub">this month</div>
     <div class="pbar"><i id="panelSaveBar" style="width:0%;background:#5f8541"></i></div>
@@ -764,11 +764,12 @@
 <!-- CHECKING GROWTH SETTINGS -->
 <div class="overlay" id="growthOverlay">
   <div class="sheet">
-    <h3>Checking growth</h3>
-    <div class="desc">Compares your debit balance now to where it started this month.</div>
+    <h3>Money growth</h3>
+    <div class="desc">What you’d really have gained this month: the change in checking, minus anything new you owe on your card. Card purchases count the day you make them, not the day you pay the card off.</div>
     <div class="menu-list">
       <button onclick="setGrowthGoal()"><span class="mi">🎯</span><span>Monthly growth goal<small id="ggSmall"></small></span></button>
-      <button onclick="setDebitStart()"><span class="mi">🏁</span><span>Starting balance this month<small id="gsSmall"></small></span></button>
+      <button onclick="setDebitStart()"><span class="mi">🏁</span><span>Checking on the 1st<small id="gsSmall"></small></span></button>
+      <button onclick="setCardStart()"><span class="mi">💳</span><span>Owed on your card on the 1st<small id="gcSmall"></small></span></button>
     </div>
     <div class="sheet-btns"><button class="btn-ghost" style="flex:1" onclick="closeOv('growthOverlay')">Done</button></div>
   </div>
@@ -914,11 +915,24 @@ function estimateDebitStart(mk){
   });
   return r2(state.debit - delta);
 }
+// What you owed on the card at the start of a month, worked back from this month's card purchases and payoffs.
+function estimateCardStart(mk){
+  let delta=0;
+  state.tx.filter(t=>monthKey(new Date(t.ts))===mk).forEach(t=>{
+    if(t.type==='exp' && t.pay==='card') delta+=t.amt;
+    else if(t.type==='payoff') delta-=t.amt;
+  });
+  return Math.max(0, r2(state.card - delta));
+}
 function ensureDebitBaseline(){
-  const mk=monthKey(); if(state.debitStart[mk]) return;
+  const mk=monthKey(), base=state.debitStart[mk];
+  if(base){
+    if(base.card===undefined){ base.card=estimateCardStart(mk); base.cardEst=true; save(); } // added later: estimate it once
+    return;
+  }
   // The first month is an estimate: card payoffs and withdrawals weren't logged before this update.
   const first = Object.keys(state.debitStart).length===0;
-  state.debitStart[mk] = { amt: estimateDebitStart(mk), est: first };
+  state.debitStart[mk] = { amt: estimateDebitStart(mk), est: first, card: estimateCardStart(mk), cardEst: first };
   save();
 }
 
@@ -1421,6 +1435,12 @@ function updateGrowthSheet(){
   const g=state.growthGoal||0, base=state.debitStart[monthKey()];
   document.getElementById('ggSmall').textContent = g>0 ? `+$${fmt(g)} a month (about $${fmt(Math.round(g*12/52))}/week)` : 'No goal set';
   document.getElementById('gsSmall').textContent = base ? `$${fmt(base.amt)}${base.est?' \u00b7 estimated, tap to fix':''}` : '\u2014';
+  document.getElementById('gcSmall').textContent = base ? `$${fmt(base.card||0)}${base.cardEst?' \u00b7 estimated, tap to fix':''}` : '\u2014';
+}
+async function setCardStart(){
+  const mk=monthKey(), base=state.debitStart[mk]||(state.debitStart[mk]={amt:state.debit});
+  const n=await askAmount('Card balance on the 1st', base.card||0, `What you owed on your credit card on ${monthLabelFor(mk).split(' ')[0]} 1.`); if(n===null) return;
+  base.card=n; base.cardEst=false; await save(); updateGrowthSheet(); render();
 }
 async function setGrowthGoal(){
   const n=await askAmount('Monthly growth goal', state.growthGoal, 'How much you want checking to grow each month.'); if(n===null) return;
@@ -1429,7 +1449,7 @@ async function setGrowthGoal(){
 async function setDebitStart(){
   const mk=monthKey(), base=state.debitStart[mk];
   const n=await askAmount('Starting balance', base?base.amt:state.debit, `Your debit balance on ${monthLabelFor(mk).split(' ')[0]} 1.`); if(n===null) return;
-  state.debitStart[mk]={ amt:n, est:false }; await save(); updateGrowthSheet(); render();
+  state.debitStart[mk]={ ...(base||{}), amt:n, est:false }; await save(); updateGrowthSheet(); render();
 }
 async function toggleOneTime(){ state.showOneTime=!state.showOneTime; await save(); render(); }
 
@@ -1546,14 +1566,19 @@ function renderBiggest(list, total){
 }
 
 function renderGrowth(){
-  const mk=monthKey(), base=state.debitStart[mk];
-  const start = base ? base.amt : state.debit;
-  const growth = r2(state.debit - start);
+  const mk=monthKey(), base=state.debitStart[mk]||{};
+  const startDebit = base.amt!==undefined ? base.amt : state.debit;
+  const startCard  = base.card!==undefined ? base.card : state.card;
+  // Real growth = checking change minus new card debt, so card purchases count the day you make them,
+  // not the day you pay the card.
+  const checking = r2(state.debit - startDebit);
+  const cardNew  = r2(state.card - startCard);          // + means you owe more than on the 1st
+  const growth   = r2(checking - cardNew);
   const goal = state.growthGoal||0;
   const now=new Date(), dim=new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
   const progress = now.getDate()/dim;
-  // only one-time costs paid straight from debit have actually left checking (card ones leave on payoff)
-  const oneTimeMonth = r2(state.tx.filter(t=>t.type==='exp' && t.pay==='debit' && inCurrentMonth(t.ts) && isOneTime(t)).reduce((s,t)=>s+netAmt(t),0));
+  // one-time costs that hit checking or the card this month
+  const oneTimeMonth = r2(state.tx.filter(t=>t.type==='exp' && t.pay!=='cash' && inCurrentMonth(t.ts) && isOneTime(t)).reduce((s,t)=>s+netAmt(t),0));
   const sign = v => (v<0?'-$':'+$')+fmt(Math.abs(r2(v)));
   document.getElementById('panelSaveAmt').textContent = sign(growth);
   const lines=[];
@@ -1562,7 +1587,7 @@ function renderGrowth(){
     const status = growth>=expected ? '<b>on track 🌱</b>' : `<b>$${fmt(Math.round(expected-growth))} behind pace</b>`;
     lines.push(`of +$${fmt(goal)} goal · ${status}`);
   } else lines.push('Tap edit to set a monthly goal');
-  lines.push(`since ${monthLabelFor(mk).split(' ')[0].slice(0,3)} 1 ($${fmt(start)})${base&&base.est?' · est.':''}`);
+  lines.push(`checking ${sign(checking)} · card ${cardNew>0?'+$'+fmt(cardNew)+' owed':cardNew<0?'-$'+fmt(-cardNew)+' paid down':'no change'}${(base.est||base.cardEst)?' · est.':''}`);
   if(oneTimeMonth>0) lines.push(`${sign(growth+oneTimeMonth)} without one-time costs`);
   document.getElementById('panelSaveSub').innerHTML = lines.join('<br>');
   document.getElementById('panelSaveBar').style.width = goal>0 ? Math.max(0,Math.min(100, growth/goal*100))+'%' : '0%';
