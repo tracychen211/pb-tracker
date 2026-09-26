@@ -444,6 +444,26 @@
   .tb .ic svg { transition: transform .2s; }
   .tb.act .ic svg { transform: translateY(-1px) scale(1.08); }
   @media (prefers-reduced-motion: reduce) { section.tab.tab-in-r, section.tab.tab-in-l { animation: none; } }
+  /* ---------- logged-later review ---------- */
+  .chk-row { display: flex; gap: 10px; align-items: flex-start; background: var(--bg); border: 1.5px solid var(--line); border-radius: 14px; padding: 11px 13px; margin-bottom: 13px; cursor: pointer; font-size: 14.5px; }
+  .chk-row input { width: 20px; height: 20px; accent-color: var(--grass-deep); margin-top: 1px; flex-shrink: 0; }
+  .chk-row small { display: block; font-size: 12px; color: var(--ink-soft); margin-top: 1px; }
+  .review-banner { display: flex; gap: 10px; align-items: flex-start; text-align: left; width: 100%; background: #fbf0d6; border: 1.5px solid #ecdcb0; border-radius: 14px; padding: 10px 12px; margin-bottom: 14px; font-family: 'Nunito',sans-serif; font-size: 13px; color: #8a6d2f; line-height: 1.4; cursor: pointer; }
+  .review-banner > span:first-child { font-size: 18px; }
+  .rv-batch { border: 1.5px solid var(--line); border-radius: 18px; padding: 10px 12px; margin-bottom: 12px; background: var(--card); }
+  .rv-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; padding-bottom: 6px; border-bottom: 1.5px dotted var(--line); }
+  .rv-head b { font-family: 'Baloo 2',cursive; font-size: 15px; }
+  .rv-head small { display: block; font-size: 12px; color: var(--ink-soft); }
+  .rv-all { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  .rv-all button, .rv-btns button { border: 1.5px solid var(--line); background: var(--bg); color: var(--ink-soft); border-radius: 100px; padding: 5px 10px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: 'Nunito',sans-serif; white-space: nowrap; }
+  .rv-btns button.ok { background: var(--sage); border-color: #b9d1a8; color: var(--sage-ink); }
+  .rv-row { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-bottom: 1.5px dotted var(--line); }
+  .rv-row:last-child { border-bottom: none; }
+  .rv-row .tx-ic { width: 34px; height: 34px; font-size: 16px; border-radius: 11px; }
+  .rv-mid { flex: 1; min-width: 0; }
+  .rv-mid .t1 { font-weight: 600; font-size: 14.5px; display: flex; justify-content: space-between; gap: 8px; }
+  .rv-amt { font-family: 'Baloo 2',cursive; font-weight: 700; }
+  .rv-btns { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
 </style>
 </head>
 <body>
@@ -655,6 +675,7 @@
       </div>
       <input type="date" id="inDate" style="display:none">
     </div>
+    <label class="chk-row"><input type="checkbox" id="inPattern" checked><span>Count in <b>When you spend</b><small>Turn off if you don't remember when you bought it</small></span></label>
     <div class="sheet-btns"><button class="btn-ghost" onclick="closeAdd()">Cancel</button><button class="btn-primary" id="addSaveBtn" onclick="saveExpense()">Add</button></div>
     <button class="btn-danger" id="addDeleteBtn" onclick="deleteEditing()" style="display:none">Delete this transaction</button>
   </div>
@@ -686,6 +707,16 @@
       <button onclick="resetEverything()" style="border-color:#e8c5b8"><span class="mi">🧹</span><span style="color:var(--accent)">Reset everything<small>Wipes all data and balances back to zero</small></span></button>
     </div>
     <div class="sheet-btns"><button class="btn-ghost" style="flex:1" onclick="closeMenu()">Close</button></div>
+  </div>
+</div>
+
+<!-- REVIEW LOGGED-LATER PURCHASES -->
+<div class="overlay" id="reviewOverlay">
+  <div class="sheet">
+    <h3>🧐 Check these dates</h3>
+    <div class="desc">These were logged in quick batches, so the app saved the time you <i>logged</i> them, not when you bought them. For each one: keep it if the day and time are right, change the date if you remember it, or leave it out of <b>When you spend</b>.</div>
+    <div id="reviewList"></div>
+    <div class="sheet-btns"><button class="btn-ghost" style="flex:1" onclick="closeOv('reviewOverlay')">Done</button></div>
   </div>
 </div>
 
@@ -1180,6 +1211,7 @@ function openAdd(){
   fillCatSelect(document.getElementById('inCat'));
   payMethod='cash'; document.querySelectorAll('#paySeg button').forEach(b=>b.classList.toggle('act', b.dataset.pay==='cash'));
   editOrigTs=null; document.getElementById('inDate').value=''; pickDay('today');
+  document.getElementById('inPattern').checked=true;
   document.getElementById('addOverlay').classList.add('on');
   setTimeout(()=>padInto('inAmt','Amount'),150); // number pad pops up right away
 }
@@ -1193,9 +1225,10 @@ function openEdit(id){
   fillCatSelect(document.getElementById('inCat')); document.getElementById('inCat').value=t.cat;
   payMethod=t.pay; document.querySelectorAll('#paySeg button').forEach(b=>b.classList.toggle('act', b.dataset.pay===t.pay));
   editOrigTs=t.ts; setDayFromTs(t.ts);
+  document.getElementById('inPattern').checked=!t.noPattern;
   document.getElementById('addOverlay').classList.add('on');
 }
-function closeAdd(){ document.getElementById('addOverlay').classList.remove('on'); }
+function closeAdd(){ document.getElementById('addOverlay').classList.remove('on'); backToReview(); }
 function applyAccount(pay, amt, sign){
   if(pay==='cash') state.wallet = r2(state.wallet - sign*amt);
   else if(pay==='debit') state.debit = r2(state.debit - sign*amt);
@@ -1216,17 +1249,21 @@ async function saveExpense(){
   const ts=chosenTs();
   if(!ts){ alert('Pick a date that isn’t in the future.'); return; }
   const backdated = isoDay(new Date(ts))!==isoDay(new Date());
+  const inPattern = document.getElementById('inPattern').checked;
   if(editingId){
     const t=state.tx.find(x=>x.id===editingId);
     applyAccount(t.pay, t.amt, -1);
     applyReimb(t.reimb||0, -1);
     if(ts!==t.ts){ t.ts=ts; t.backdated=true; }
+    if(inPattern) delete t.noPattern; else t.noPattern=true;
+    if(reviewEditId===t.id) t.checked=true;   // fixed from the review list
     t.amt=amt; t.cat=cat; t.note=note; t.pay=payMethod; t.reimb=reimb;
     applyAccount(payMethod, amt, +1);
     applyReimb(reimb, +1);
   } else {
     const nt={ id:newId(), amt, cat, pay:payMethod, note, reimb, ts, type:'exp' };
     if(backdated) nt.backdated=true;  // real time of day unknown, so it's left out of the time-of-day chart
+    if(!inPattern) nt.noPattern=true;
     state.tx.unshift(nt);
     applyAccount(payMethod, amt, +1);
     applyReimb(reimb, +1);
@@ -1767,13 +1804,61 @@ function openCatDetail(id){
 }
 
 // ---------- when you spend (last 90 days) ----------
+// ---------- catch-up entries: purchases logged in quick batches ----------
+// 3+ purchases logged within 15 minutes of each other were probably typed in later, so their
+// saved day/time is when you logged them. Ones you've already checked, fixed, or left out are skipped.
+function catchUpBatches(){
+  // group by when each purchase was *logged* (its id is the logging time and never changes, even if you fix the date)
+  // (the id is the moment you tapped Add; only trust it when it's on/after the purchase date and within a year of it)
+  const logged=t=> (t.id>1e12 && t.id>=t.ts-6e4 && t.id-t.ts<366*864e5) ? t.id : t.ts;
+  const ex=state.tx.filter(t=>t.type==='exp').sort((a,b)=>logged(a)-logged(b));
+  const groups=[]; let cur=[];
+  ex.forEach(t=>{ if(cur.length && logged(t)-logged(cur[cur.length-1])<=15*60e3) cur.push(t); else { if(cur.length>=3) groups.push(cur); cur=[t]; } });
+  if(cur.length>=3) groups.push(cur);
+  // only show the ones you haven't dealt with yet
+  return groups.map(g=>g.filter(t=>!t.backdated && !t.checked && !t.noPattern)).filter(g=>g.length).reverse();
+}
+let reviewEditId=null, reviewBatchesCache=[];
+function openReview(){ renderReview(); document.getElementById('reviewOverlay').classList.add('on'); }
+function whenStr(ts){ return new Date(ts).toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}); }
+function renderReview(){
+  const el=document.getElementById('reviewList');
+  reviewBatchesCache=catchUpBatches();
+  if(!reviewBatchesCache.length){ el.innerHTML='<div class="empty">All checked — nothing left to review. 🌸</div>'; return; }
+  el.innerHTML=reviewBatchesCache.map((b,bi)=>`
+    <div class="rv-batch">
+      <div class="rv-head"><div><b>Logged together</b><small>${whenStr(b[0].ts)} · ${b.length} purchases</small></div>
+        <div class="rv-all"><button onclick="reviewBatch(${bi},'ok')">All right</button><button onclick="reviewBatch(${bi},'out')">Leave all out</button></div></div>
+      ${b.map(t=>{ const m=catMeta(t.cat); return `
+        <div class="rv-row"><div class="tx-ic">${m.icon}</div>
+          <div class="rv-mid"><div class="t1">${escHtml(t.note||m.name)} <span class="rv-amt">$${fmt(netAmt(t))}</span></div>
+            <div class="rv-btns"><button class="ok" onclick="reviewMark(${t.id},'ok')">✓ Right</button><button onclick="reviewChange(${t.id})">📅 Change date</button><button onclick="reviewMark(${t.id},'out')">Leave out</button></div></div></div>`; }).join('')}
+    </div>`).join('');
+}
+async function reviewMark(id, what){
+  const t=state.tx.find(x=>x.id===id); if(!t) return;
+  if(what==='ok') t.checked=true; else t.noPattern=true;
+  await save(); renderReview(); render();
+}
+async function reviewBatch(bi, what){
+  (reviewBatchesCache[bi]||[]).forEach(t=>{ if(what==='ok') t.checked=true; else t.noPattern=true; });
+  await save(); renderReview(); render();
+}
+function reviewChange(id){
+  reviewEditId=id; closeOv('reviewOverlay'); openEdit(id);
+  pickDay('other'); // jump straight to the date picker
+}
+function backToReview(){ if(reviewEditId!==null){ reviewEditId=null; openReview(); } }
+
 let whenSel=null; // {k:'dow'|'tod', i}
 function pickWhen(k,i){ whenSel = (whenSel && whenSel.k===k && whenSel.i===i) ? null : {k,i}; renderWhen(); }
 function renderWhen(){
   const el=document.getElementById('whenContent');
   const since=Date.now()-90*864e5;
-  const ex=state.tx.filter(t=>t.type==='exp' && counts(t) && t.ts>=since && netAmt(t)>0);
-  if(ex.length<5){ el.innerHTML='<div class="chart-empty">Log a few more purchases to see your patterns.</div>'; return; }
+  const ex=state.tx.filter(t=>t.type==='exp' && counts(t) && !t.noPattern && t.ts>=since && netAmt(t)>0);
+  const nLate=catchUpBatches().reduce((a,b)=>a+b.length,0);
+  const banner = nLate ? `<button class="review-banner" onclick="openReview()"><span>🧐</span><span><b>${nLate} purchases</b> look like they were logged later, so their day or time may be off. <u>Review them</u></span></button>` : '';
+  if(ex.length<5){ el.innerHTML=banner+'<div class="chart-empty">Log a few more purchases to see your patterns.</div>'; return; }
   const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], FULL=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
   const dowI=t=>(new Date(t.ts).getDay()+6)%7;
   const dow=[0,0,0,0,0,0,0];
@@ -1788,7 +1873,7 @@ function renderWhen(){
   const todTotal=tod.reduce((a,b)=>a+b,0), maxT=Math.max(...tod), topT=tod.indexOf(maxT);
   const k=v=>v>=1000?'$'+(v/1000).toFixed(1)+'k':'$'+Math.round(v);
   const sd = whenSel&&whenSel.k==='dow' ? whenSel.i : null, st = whenSel&&whenSel.k==='tod' ? whenSel.i : null;
-  let html=`<div class="when-insight">You spend the most on <b>${FULL[topD]}s</b> (${Math.round(maxD/total*100)}% of spending)`+
+  let html=banner+`<div class="when-insight">You spend the most on <b>${FULL[topD]}s</b> (${Math.round(maxD/total*100)}% of spending)`+
     (todTotal>0 ? `, mostly in the <b>${SLOTS[topT][0].toLowerCase()}</b>.` : '.')+
     ` <span style="color:var(--ink-soft);font-size:12.5px">Last 90 days · ${ex.length} purchases · tap to see them</span></div>`;
   html+='<h4>By day of week</h4><div class="dow">'+dow.map((v,i)=>`<div class="col ${i===topD&&sd==null?'top':''} ${i===sd?'sel':''} ${sd!=null&&i!==sd?'dim':''}" onclick="pickWhen('dow',${i})"><span class="amt">${v>0?k(v):''}</span><i style="height:${maxD>0?Math.max(3,v/maxD*78):3}px"></i><span class="d">${DAYS[i]}</span></div>`).join('')+'</div>';
@@ -1802,7 +1887,7 @@ function renderWhen(){
 
 document.getElementById('lockPass').addEventListener('keydown', e=>{ if(e.key==='Enter'){ if(lockMode==='unlock') lockSubmit(); else document.getElementById('lockPass2').focus(); }});
 document.getElementById('lockPass2').addEventListener('keydown', e=>{ if(e.key==='Enter') lockSubmit(); });
-['addOverlay','catOverlay','menuOverlay','growthOverlay','emojiOverlay','catDetailOverlay'].forEach(id=>{ document.getElementById(id).addEventListener('click', e=>{ if(e.target.id===id) document.getElementById(id).classList.remove('on'); }); });
+['addOverlay','catOverlay','menuOverlay','growthOverlay','emojiOverlay','catDetailOverlay','reviewOverlay'].forEach(id=>{ document.getElementById(id).addEventListener('click', e=>{ if(e.target.id===id) document.getElementById(id).classList.remove('on'); }); });
 document.getElementById('padOverlay').addEventListener('click', e=>{ if(e.target.id==='padOverlay') padCancel(); });
 document.getElementById('emojiCustom').addEventListener('keydown', e=>{ if(e.key==='Enter') useCustomEmoji(); });
 document.getElementById('lockKeys').innerHTML = keypadHTML('lockKey', false);
