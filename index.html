@@ -306,6 +306,42 @@
   .tx-amt.pay { color: var(--sky-deep); }
   .tx-amt.move { color: var(--ink-soft); }
   .panel .small b { font-weight: 700; }
+
+  /* tappable categories */
+  .cat.tap, .legend .lg.tap { cursor: pointer; }
+  .cat.tap:active { background: var(--bg2); }
+  .cat-name .chev { color: var(--ink-soft); opacity: .45; margin-left: 4px; font-weight: 400; }
+  .cd-stats { display: flex; gap: 10px; margin: -4px 0 12px; }
+  .cd-stats .mini .v { font-size: 18px; }
+
+  /* sort pills */
+  .sortbar { display: flex; gap: 6px; margin: -4px 4px 8px; align-items: center; }
+  .sortbar span { font-size: 12px; color: var(--ink-soft); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; margin-right: 2px; }
+  .sortbar button { border: 1.5px solid var(--line); background: var(--card); color: var(--ink-soft); border-radius: 100px; padding: 6px 12px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .sortbar button.act { background: var(--grass-deep); border-color: var(--grass-deep); color: #fff; }
+  .tx-group { display: flex; justify-content: space-between; align-items: baseline; margin: 16px 4px 2px; font-family: 'Baloo 2',cursive; font-weight: 600; font-size: 14.5px; }
+  .tx-group small { font-family: 'Nunito',sans-serif; font-size: 12.5px; color: var(--ink-soft); font-weight: 600; }
+  .tx-group:first-child { margin-top: 0; }
+
+  /* date picker in add sheet */
+  .date-row input[type=date] { margin-top: 8px; }
+
+  /* when you spend */
+  .when-card { background: var(--card); border: 1.5px solid var(--line); border-radius: 22px; padding: 16px 18px; box-shadow: var(--shadow); margin-bottom: 14px; }
+  .when-card h4 { font-family: 'Baloo 2',cursive; font-size: 12.5px; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .05em; margin: 2px 0 10px; }
+  .when-insight { font-size: 14px; line-height: 1.45; margin-bottom: 14px; }
+  .when-insight b { color: var(--terra); }
+  .dow { display: flex; align-items: flex-end; gap: 8px; height: 118px; margin-bottom: 16px; }
+  .dow .col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 4px; }
+  .dow .col .amt { font-size: 10.5px; color: var(--ink-soft); font-weight: 700; white-space: nowrap; }
+  .dow .col i { display: block; width: 100%; max-width: 30px; border-radius: 8px 8px 4px 4px; background: var(--sky); min-height: 3px; }
+  .dow .col.top i { background: var(--terra); }
+  .dow .col .d { font-family: 'Baloo 2',cursive; font-weight: 600; font-size: 12.5px; color: var(--ink-soft); }
+  .tod-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 13.5px; }
+  .tod-row .lbl { width: 112px; flex-shrink: 0; }
+  .tod-row .lbl small { display: block; font-size: 11px; color: var(--ink-soft); }
+  .tod-row .bar { flex: 1; }
+  .tod-row .v { font-family: 'Baloo 2',cursive; font-weight: 700; width: 56px; text-align: right; flex-shrink: 0; }
 </style>
 </head>
 <body>
@@ -421,6 +457,9 @@
 <div class="sec-head"><h2>🧺 Budgets</h2><button class="edit" onclick="openCatManager()">Categories</button></div>
 <div id="cats" class="cats-grid"></div>
 
+<div class="sec-head"><h2>⏰ When you spend</h2></div>
+<div class="when-card"><div id="whenContent"></div></div>
+
 <!-- THREE COZY PANELS -->
 <div class="panels">
   <div class="panel sage">
@@ -446,6 +485,11 @@
 </div>
 
 <div class="sec-head"><h2 id="activityTitle">📖 Recent activity</h2><button class="edit" onclick="addPaycheck()">+ Income</button></div>
+<div class="sortbar" id="sortBar"><span>Sort</span>
+  <button data-sort="date" onclick="setSort('date')">Date</button>
+  <button data-sort="amount" onclick="setSort('amount')">Largest</button>
+  <button data-sort="category" onclick="setSort('category')">Category</button>
+</div>
 <div id="txList"></div>
 
 <button class="fab" onclick="openAdd()">＋ Add expense</button>
@@ -464,6 +508,14 @@
         <button data-pay="debit" onclick="pickPay(this)">🏦 Debit</button>
         <button data-pay="card" onclick="pickPay(this)">💳 Credit</button>
       </div>
+    </div>
+    <div class="field date-row"><label>When?</label>
+      <div class="seg" id="dateSeg">
+        <button data-d="today" onclick="pickDay('today')">Today</button>
+        <button data-d="yest" onclick="pickDay('yest')">Yesterday</button>
+        <button data-d="other" onclick="pickDay('other')">📅 Other</button>
+      </div>
+      <input type="date" id="inDate" style="display:none">
     </div>
     <div class="sheet-btns"><button class="btn-ghost" onclick="closeAdd()">Cancel</button><button class="btn-primary" id="addSaveBtn" onclick="saveExpense()">Add</button></div>
     <button class="btn-danger" id="addDeleteBtn" onclick="deleteEditing()" style="display:none">Delete this transaction</button>
@@ -496,6 +548,16 @@
       <button onclick="resetEverything()" style="border-color:#e8c5b8"><span class="mi">🧹</span><span style="color:var(--accent)">Reset everything<small>Wipes all data and balances back to zero</small></span></button>
     </div>
     <div class="sheet-btns"><button class="btn-ghost" style="flex:1" onclick="closeMenu()">Close</button></div>
+  </div>
+</div>
+
+<!-- CATEGORY DETAIL -->
+<div class="overlay" id="catDetailOverlay">
+  <div class="sheet">
+    <h3 id="cdTitle">Category</h3>
+    <div class="cd-stats" id="cdStats"></div>
+    <div id="cdList"></div>
+    <div class="sheet-btns"><button class="btn-ghost" style="flex:1" onclick="closeOv('catDetailOverlay')">Close</button></div>
   </div>
 </div>
 
@@ -925,7 +987,35 @@ function updateMonthNav(){
 }
 function periodFilter(t){ return period==='week' ? inCurrentWeek(t.ts) : inViewMonth(t.ts); }
 
-let payMethod='cash', editingId=null;
+let payMethod='cash', editingId=null, dayChoice='today', editOrigTs=null;
+function isoDay(d){ return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`; }
+function pickDay(which){
+  dayChoice=which;
+  document.querySelectorAll('#dateSeg button').forEach(b=>b.classList.toggle('act', b.dataset.d===which));
+  const inp=document.getElementById('inDate');
+  inp.max=isoDay(new Date());
+  inp.style.display = which==='other' ? 'block' : 'none';
+  if(which==='other' && !inp.value){ const y=new Date(); y.setDate(y.getDate()-2); inp.value=isoDay(y); }
+}
+// Timestamp to save for the chosen day, or null if the date is missing/in the future
+function chosenTs(){
+  const now=new Date();
+  let d;
+  if(dayChoice==='today') d=new Date(now);
+  else if(dayChoice==='yest'){ d=new Date(now); d.setDate(d.getDate()-1); }
+  else { const v=document.getElementById('inDate').value; if(!v) return null; const [y,m,dd]=v.split('-').map(Number); d=new Date(y,m-1,dd); }
+  if(editOrigTs && isoDay(new Date(editOrigTs))===isoDay(d)) return editOrigTs; // same day as before: keep original time
+  if(isoDay(d)===isoDay(now)) return editOrigTs ? new Date(d.getFullYear(),d.getMonth(),d.getDate(),12).getTime() : Date.now();
+  if(d > now) return null;
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12).getTime(); // noon, since the real time isn't known
+}
+function setDayFromTs(ts){
+  const d=new Date(ts), y=new Date(); y.setDate(y.getDate()-1);
+  document.getElementById('inDate').value=isoDay(d);
+  if(isoDay(d)===isoDay(new Date())) pickDay('today');
+  else if(isoDay(d)===isoDay(y)) pickDay('yest');
+  else pickDay('other');
+}
 function pickPay(btn){ payMethod=btn.dataset.pay; document.querySelectorAll('#paySeg button').forEach(b=>b.classList.remove('act')); btn.classList.add('act'); }
 function fillCatSelect(sel){ sel.innerHTML = state.cats.map(c=>`<option value="${c.id}">${c.icon} ${c.name}</option>`).join(''); }
 function openAdd(){
@@ -936,6 +1026,7 @@ function openAdd(){
   document.getElementById('inAmt').value=''; document.getElementById('inNote').value=''; document.getElementById('inReimb').value='';
   fillCatSelect(document.getElementById('inCat'));
   payMethod='cash'; document.querySelectorAll('#paySeg button').forEach(b=>b.classList.toggle('act', b.dataset.pay==='cash'));
+  editOrigTs=null; document.getElementById('inDate').value=''; pickDay('today');
   document.getElementById('addOverlay').classList.add('on');
   setTimeout(()=>padInto('inAmt','Amount'),150); // number pad pops up right away
 }
@@ -948,6 +1039,7 @@ function openEdit(id){
   document.getElementById('inAmt').value='$'+t.amt; document.getElementById('inNote').value=t.note||''; document.getElementById('inReimb').value=t.reimb?'$'+t.reimb:'';
   fillCatSelect(document.getElementById('inCat')); document.getElementById('inCat').value=t.cat;
   payMethod=t.pay; document.querySelectorAll('#paySeg button').forEach(b=>b.classList.toggle('act', b.dataset.pay===t.pay));
+  editOrigTs=t.ts; setDayFromTs(t.ts);
   document.getElementById('addOverlay').classList.add('on');
 }
 function closeAdd(){ document.getElementById('addOverlay').classList.remove('on'); }
@@ -968,15 +1060,21 @@ async function saveExpense(){
   let reimb=readMoney('inReimb');
   if(reimb<0) reimb=0;
   if(reimb>amt){ alert("Paid-back amount can't be more than the total."); return; }
+  const ts=chosenTs();
+  if(!ts){ alert('Pick a date that isn’t in the future.'); return; }
+  const backdated = isoDay(new Date(ts))!==isoDay(new Date());
   if(editingId){
     const t=state.tx.find(x=>x.id===editingId);
     applyAccount(t.pay, t.amt, -1);
     applyReimb(t.reimb||0, -1);
+    if(ts!==t.ts){ t.ts=ts; t.backdated=true; }
     t.amt=amt; t.cat=cat; t.note=note; t.pay=payMethod; t.reimb=reimb;
     applyAccount(payMethod, amt, +1);
     applyReimb(reimb, +1);
   } else {
-    state.tx.unshift({ id:Date.now(), amt, cat, pay:payMethod, note, reimb, ts:Date.now(), type:'exp' });
+    const nt={ id:newId(), amt, cat, pay:payMethod, note, reimb, ts, type:'exp' };
+    if(backdated) nt.backdated=true;  // real time of day unknown, so it's left out of the time-of-day chart
+    state.tx.unshift(nt);
     applyAccount(payMethod, amt, +1);
     applyReimb(reimb, +1);
   }
@@ -1123,7 +1221,7 @@ function renderDonut(spentByCat, total){
     const seg=`<circle r="${R}" cx="65" cy="65" fill="none" stroke="${e.c.color}" stroke-width="18" stroke-linecap="round" stroke-dasharray="${Math.max(0,len-gap)} ${C-Math.max(0,len-gap)}" stroke-dashoffset="${-off}" transform="rotate(-90 65 65)"/>`;
     off+=len; return seg;
   }).join('');
-  const legend=entries.map(e=>`<div class="lg"><span class="sw" style="background:${e.c.color}"></span><span class="nm">${e.c.icon} ${escHtml(e.c.name)}</span><span class="vl">$${fmt(r2(e.v))}</span></div>`).join('');
+  const legend=entries.map(e=>`<div class="lg ${e.c.id?'tap':''}" ${e.c.id?`onclick="openCatDetail('${e.c.id}')"`:''}><span class="sw" style="background:${e.c.color}"></span><span class="nm">${e.c.icon} ${escHtml(e.c.name)}</span><span class="vl">$${fmt(r2(e.v))}</span></div>`).join('');
   wrap.innerHTML=`<div class="chart-wrap"><div class="donut"><svg viewBox="0 0 130 130" width="130" height="130">${segs}</svg><div class="center"><div class="ct-amt">$${fmt(total)}</div><div class="ct-lbl">${lbl}</div></div></div><div class="legend">${legend}</div></div>`;
 }
 
@@ -1250,16 +1348,16 @@ function render(){
   catsEl.innerHTML=state.cats.map(c=>{
     const sp=spentByCatAllExp[c.id]||0;
     const lim = isWeek ? c.limit/(30/7) : c.limit;
-    const name=`<div class="cat-name"><span class="dot" style="background:${c.color}"></span>${c.icon} ${escHtml(c.name)}</div>`;
+    const name=`<div class="cat-name"><span class="dot" style="background:${c.color}"></span>${c.icon} ${escHtml(c.name)}<span class="chev">›</span></div>`;
     if(!(lim>0)){ // no limit (e.g. one-time costs): just show what was spent
       const note = c.oneTime ? (state.showOneTime ? 'One-time — counted in your totals right now' : 'One-time — kept out of your totals') : 'No limit set';
-      return `<div class="cat"><div class="cat-top">${name}<div class="cat-nums"><b>$${fmt(sp)}</b> · no limit</div></div><div class="pace" style="margin-top:0">${note}</div></div>`;
+      return `<div class="cat tap" onclick="openCatDetail('${c.id}')"><div class="cat-top">${name}<div class="cat-nums"><b>$${fmt(sp)}</b> · no limit</div></div><div class="pace" style="margin-top:0">${note}</div></div>`;
     }
     const pct=Math.min(100,(sp/lim)*100);
     const over=sp>lim; const barColor=over?'var(--accent)':c.color;
     let pace='';
     if(!isWeek && viewMonth===monthKey() && sp>0){ const expected=c.limit*monthProgress; if(sp>expected*1.15) pace=`<div class="pace behind">Ahead of pace — ${Math.round(monthProgress*100)}% through month, ${Math.round(sp/c.limit*100)}% of budget used</div>`; }
-    return `<div class="cat"><div class="cat-top">${name}<div class="cat-nums ${over?'over':''}"><b>$${fmt(sp)}</b> / $${fmt(Math.round(lim))}</div></div><div class="bar"><i style="width:${pct}%;background:${barColor}"></i></div>${pace}</div>`;
+    return `<div class="cat tap" onclick="openCatDetail('${c.id}')"><div class="cat-top">${name}<div class="cat-nums ${over?'over':''}"><b>$${fmt(sp)}</b> / $${fmt(Math.round(lim))}</div></div><div class="bar"><i style="width:${pct}%;background:${barColor}"></i></div>${pace}</div>`;
   }).join('');
 
   // three panels
@@ -1269,38 +1367,113 @@ function render(){
   document.getElementById('panelIncAmt').textContent = '$'+fmt(r2(state.tx.filter(t=>t.type==='income' && inCurrentMonth(t.ts)).reduce((s,t)=>s+t.amt,0)));
 
   document.getElementById('activityTitle').textContent = isWeek ? '📖 This week’s activity' : '📖 Recent activity';
-  const txEl=document.getElementById('txList');
-  const list = state.tx.filter(periodFilter).sort((a,b)=>b.ts-a.ts);
-  const OTHER = {
-    income:  { ic:'💰', t1:'Paycheck',        t2:'into debit',                          cls:'in',   pre:'+' },
-    payoff:  { ic:'💳', t1:'Card payoff',     t2:'debit → card · not spending', cls:'pay',  pre:'' },
-    withdraw:{ ic:'🏧', t1:'Cash withdrawal', t2:'debit → wallet',                  cls:'move', pre:'' },
-  };
-  if(list.length===0){ txEl.innerHTML='<div class="empty">No transactions this '+period+' yet. Tap “Add expense” to log one.</div>'; }
-  else {
-    txEl.innerHTML=list.slice(0,80).map(t=>{
-      if(t.type!=='exp'){
-        const o=OTHER[t.type]; if(!o) return '';
-        return `<div class="tx" onclick="undoTx(${t.id})"><div class="tx-ic">${o.ic}</div><div class="tx-mid"><div class="t1">${o.t1}</div><div class="t2">${o.t2} · ${shortDate(t.ts)}</div></div><div class="tx-amt ${o.cls}">${o.pre}$${fmt(t.amt)}</div><span class="tx-chev">›</span></div>`;
-      }
-      const m=catMeta(t.cat); let chip='';
-      if(t.pay==='cash') chip='<span class="pay-chip pay-cash">cash</span>';
-      else if(t.pay==='debit') chip='<span class="pay-chip pay-debit">debit</span>';
-      else chip='<span class="pay-chip pay-card">credit</span>';
-      if(m.oneTime) chip+=' <span class="pay-chip ot-chip">one-time</span>';
-      const hasReimb = (t.reimb||0) > 0;
-      const reimbChip = hasReimb ? ` <span class="pay-chip" style="background:var(--sage);color:var(--sage-ink)">−$${fmt(t.reimb)} back</span>` : '';
-      const amtHtml = hasReimb
-        ? `<div style="text-align:right"><div class="tx-amt">$${fmt(netAmt(t))}</div><div style="font-size:11px;color:var(--ink-soft);text-decoration:line-through">$${fmt(t.amt)}</div></div>`
-        : `<div class="tx-amt">$${fmt(t.amt)}</div>`;
-      return `<div class="tx" onclick="openEdit(${t.id})"><div class="tx-ic">${m.icon}</div><div class="tx-mid"><div class="t1">${escHtml(t.note || m.name)}</div><div class="t2">${escHtml(m.name)} · ${shortDate(t.ts)} ${chip}${reimbChip}</div></div>${amtHtml}<span class="tx-chev">›</span></div>`;
-    }).join('');
+  renderActivity();
+  renderWhen();
+}
+
+const OTHER_TX = {
+  income:  { ic:'💰', t1:'Paycheck',        t2:'into debit',                  cls:'in',   pre:'+' },
+  payoff:  { ic:'💳', t1:'Card payoff',     t2:'debit → card · not spending', cls:'pay',  pre:'' },
+  withdraw:{ ic:'🏧', t1:'Cash withdrawal', t2:'debit → wallet',              cls:'move', pre:'' },
+};
+function txRowHTML(t, fromDetail){
+  if(t.type!=='exp'){
+    const o=OTHER_TX[t.type]; if(!o) return '';
+    return `<div class="tx" onclick="undoTx(${t.id})"><div class="tx-ic">${o.ic}</div><div class="tx-mid"><div class="t1">${o.t1}</div><div class="t2">${o.t2} · ${shortDate(t.ts)}</div></div><div class="tx-amt ${o.cls}">${o.pre}$${fmt(t.amt)}</div><span class="tx-chev">›</span></div>`;
   }
+  const m=catMeta(t.cat); let chip='';
+  if(t.pay==='cash') chip='<span class="pay-chip pay-cash">cash</span>';
+  else if(t.pay==='debit') chip='<span class="pay-chip pay-debit">debit</span>';
+  else chip='<span class="pay-chip pay-card">credit</span>';
+  if(m.oneTime) chip+=' <span class="pay-chip ot-chip">one-time</span>';
+  const hasReimb = (t.reimb||0) > 0;
+  const reimbChip = hasReimb ? ` <span class="pay-chip" style="background:var(--sage);color:var(--sage-ink)">−$${fmt(t.reimb)} back</span>` : '';
+  const amtHtml = hasReimb
+    ? `<div style="text-align:right"><div class="tx-amt">$${fmt(netAmt(t))}</div><div style="font-size:11px;color:var(--ink-soft);text-decoration:line-through">$${fmt(t.amt)}</div></div>`
+    : `<div class="tx-amt">$${fmt(t.amt)}</div>`;
+  const click = fromDetail ? `closeOv('catDetailOverlay');openEdit(${t.id})` : `openEdit(${t.id})`;
+  return `<div class="tx" onclick="${click}"><div class="tx-ic">${m.icon}</div><div class="tx-mid"><div class="t1">${escHtml(t.note || m.name)}</div><div class="t2">${escHtml(m.name)} · ${shortDate(t.ts)} ${chip}${reimbChip}</div></div>${amtHtml}<span class="tx-chev">›</span></div>`;
+}
+
+// ---------- activity list with sorting ----------
+async function setSort(k){ state.txSort=k; await save(); renderActivity(); }
+function txValue(t){ return t.type==='exp' ? netAmt(t) : t.amt; }
+function renderActivity(){
+  const sort=state.txSort||'date';
+  document.querySelectorAll('#sortBar button').forEach(b=>b.classList.toggle('act', b.dataset.sort===sort));
+  const txEl=document.getElementById('txList');
+  const list = state.tx.filter(periodFilter);
+  if(list.length===0){ txEl.innerHTML='<div class="empty">No transactions this '+period+' yet. Tap “Add expense” to log one.</div>'; return; }
+  if(sort==='amount'){
+    // purchases largest → smallest; paychecks/payoffs/withdrawals listed after
+    const exp=list.filter(t=>t.type==='exp').sort((a,b)=>txValue(b)-txValue(a) || b.ts-a.ts);
+    const moves=list.filter(t=>t.type!=='exp').sort((a,b)=>b.ts-a.ts);
+    txEl.innerHTML = exp.slice(0,150).map(t=>txRowHTML(t)).join('')
+      + (moves.length ? `<div class="tx-group" style="margin-top:16px">🔁 Money moves<small>${moves.length}</small></div>` + moves.map(t=>txRowHTML(t)).join('') : '');
+    return;
+  }
+  if(sort==='category'){
+    // one group per category (biggest total first); paychecks, payoffs, withdrawals at the end
+    const groups={};
+    list.forEach(t=>{ const k=t.type==='exp'?t.cat:'_moves'; (groups[k]=groups[k]||[]).push(t); });
+    const sum=k=>groups[k].reduce((s,t)=>s+netAmt(t),0);
+    const keys=Object.keys(groups).sort((a,b)=> a==='_moves' ? 1 : b==='_moves' ? -1 : sum(b)-sum(a));
+    txEl.innerHTML = keys.map(k=>{
+      const g=groups[k].sort((a,b)=>b.ts-a.ts);
+      if(k==='_moves') return `<div class="tx-group">🔁 Money moves<small>${g.length}</small></div>` + g.map(t=>txRowHTML(t)).join('');
+      const m=catMeta(k);
+      return `<div class="tx-group">${m.icon} ${escHtml(m.name)}<small>$${fmt(r2(sum(k)))} · ${g.length}</small></div>` + g.map(t=>txRowHTML(t)).join('');
+    }).join('');
+    return;
+  }
+  txEl.innerHTML = list.sort((a,b)=>b.ts-a.ts).slice(0,150).map(t=>txRowHTML(t)).join('');
+}
+
+// ---------- tap a category: every purchase in it this week/month ----------
+function openCatDetail(id){
+  const m=catMeta(id);
+  const list=state.tx.filter(t=>t.type==='exp' && t.cat===id && periodFilter(t)).sort((a,b)=>b.ts-a.ts);
+  const total=r2(list.reduce((s,t)=>s+netAmt(t),0));
+  const lbl = period==='week' ? 'this week' : (viewMonth===monthKey() ? 'this month' : 'in '+monthLabelFor(viewMonth).split(' ')[0]);
+  document.getElementById('cdTitle').textContent = `${m.icon} ${m.name}`;
+  const lim = period==='week' ? (m.limit||0)/(30/7) : (m.limit||0);
+  document.getElementById('cdStats').innerHTML =
+    `<div class="mini"><div class="k">Spent ${lbl}</div><div class="v spent">$${fmt(total)}</div></div>`+
+    `<div class="mini"><div class="k">Purchases</div><div class="v">${list.length}</div></div>`+
+    (lim>0 ? `<div class="mini"><div class="k">${total>lim?'Over by':'Left'}</div><div class="v ${total>lim?'spent':'income'}">$${fmt(Math.abs(r2(lim-total)))}</div></div>` : '');
+  document.getElementById('cdList').innerHTML = list.length ? list.map(t=>txRowHTML(t,true)).join('') : `<div class="empty">Nothing in ${escHtml(m.name)} ${lbl}.</div>`;
+  document.getElementById('catDetailOverlay').classList.add('on');
+}
+
+// ---------- when you spend (last 90 days) ----------
+function renderWhen(){
+  const el=document.getElementById('whenContent');
+  const since=Date.now()-90*864e5;
+  const ex=state.tx.filter(t=>t.type==='exp' && counts(t) && t.ts>=since && netAmt(t)>0);
+  if(ex.length<5){ el.innerHTML='<div class="chart-empty">Log a few more purchases to see your patterns.</div>'; return; }
+  const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], FULL=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  const dow=[0,0,0,0,0,0,0];
+  ex.forEach(t=>{ dow[(new Date(t.ts).getDay()+6)%7]+=netAmt(t); });
+  const maxD=Math.max(...dow), topD=dow.indexOf(maxD), total=dow.reduce((a,b)=>a+b,0);
+  // time of day only uses purchases logged when they happened (backdated ones have no real time)
+  const SLOTS=[['Morning','5am–12pm',5,12],['Afternoon','12–5pm',12,17],['Evening','5–10pm',17,22],['Late night','10pm–5am',22,29]];
+  const tod=[0,0,0,0], todN=[0,0,0,0];
+  ex.filter(t=>!t.backdated).forEach(t=>{ let h=new Date(t.ts).getHours(); if(h<5) h+=24; const i=SLOTS.findIndex(x=>h>=x[2]&&h<x[3]); if(i>=0){ tod[i]+=netAmt(t); todN[i]++; } });
+  const todTotal=tod.reduce((a,b)=>a+b,0), maxT=Math.max(...tod), topT=tod.indexOf(maxT);
+  const k=v=>v>=1000?'$'+(v/1000).toFixed(1)+'k':'$'+Math.round(v);
+  let html=`<div class="when-insight">You spend the most on <b>${FULL[topD]}s</b> (${Math.round(maxD/total*100)}% of spending)`+
+    (todTotal>0 ? `, mostly in the <b>${SLOTS[topT][0].toLowerCase()}</b>.` : '.')+
+    ` <span style="color:var(--ink-soft);font-size:12.5px">Last 90 days · ${ex.length} purchases</span></div>`;
+  html+='<h4>By day of week</h4><div class="dow">'+dow.map((v,i)=>`<div class="col ${i===topD?'top':''}"><span class="amt">${v>0?k(v):''}</span><i style="height:${maxD>0?Math.max(3,v/maxD*78):3}px"></i><span class="d">${DAYS[i]}</span></div>`).join('')+'</div>';
+  if(todTotal>0){
+    html+='<h4>By time of day</h4>'+SLOTS.map((x,i)=>`<div class="tod-row"><div class="lbl">${x[0]}<small>${x[1]} · ${todN[i]} ${todN[i]===1?'buy':'buys'}</small></div><div class="bar"><i style="width:${maxT>0?tod[i]/maxT*100:0}%;background:${i===topT?'var(--terra)':'var(--sky)'}"></i></div><div class="v">${k(tod[i])}</div></div>`).join('');
+  }
+  el.innerHTML=html;
 }
 
 document.getElementById('lockPass').addEventListener('keydown', e=>{ if(e.key==='Enter'){ if(lockMode==='unlock') lockSubmit(); else document.getElementById('lockPass2').focus(); }});
 document.getElementById('lockPass2').addEventListener('keydown', e=>{ if(e.key==='Enter') lockSubmit(); });
-['addOverlay','catOverlay','menuOverlay','growthOverlay','emojiOverlay'].forEach(id=>{ document.getElementById(id).addEventListener('click', e=>{ if(e.target.id===id) document.getElementById(id).classList.remove('on'); }); });
+['addOverlay','catOverlay','menuOverlay','growthOverlay','emojiOverlay','catDetailOverlay'].forEach(id=>{ document.getElementById(id).addEventListener('click', e=>{ if(e.target.id===id) document.getElementById(id).classList.remove('on'); }); });
 document.getElementById('padOverlay').addEventListener('click', e=>{ if(e.target.id==='padOverlay') padCancel(); });
 document.getElementById('emojiCustom').addEventListener('keydown', e=>{ if(e.key==='Enter') useCustomEmoji(); });
 document.getElementById('lockKeys').innerHTML = keypadHTML('lockKey', false);
