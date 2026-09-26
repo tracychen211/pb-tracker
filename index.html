@@ -218,8 +218,10 @@
 
   .overlay { position: fixed; inset: 0; background: rgba(74,64,49,.42); backdrop-filter: blur(3px); z-index: 100; display: none; align-items: flex-end; justify-content: center; }
   .overlay.on { display: flex; }
-  .sheet { background: var(--card); width: 100%; max-width: 720px; border-radius: 26px 26px 0 0; padding: 20px 18px calc(20px + env(safe-area-inset-bottom)); animation: up .25s ease; max-height: 92vh; overflow-y: auto; }
-  @keyframes up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .sheet { background: var(--card); width: 100%; max-width: 720px; border-radius: 26px 26px 0 0; padding: 20px 18px calc(20px + env(safe-area-inset-bottom)); animation: up .2s ease-out; max-height: 92vh; overflow-y: auto; }
+  @keyframes up { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+  .sheet.still { animation: none; }
+  @media (prefers-reduced-motion: reduce) { .sheet, .dlg, .dlg-overlay.on { animation: none !important; } }
   .sheet h3 { font-size: 21px; margin-bottom: 16px; color: var(--grass-deep); }
   .sheet .desc { font-size: 13.5px; color: var(--ink-soft); margin: -8px 0 16px; line-height: 1.45; }
   .field { margin-bottom: 13px; }
@@ -1312,7 +1314,10 @@ function openAdd(){
   editOrigTs=null; document.getElementById('inDate').value=''; pickDay('today');
   document.getElementById('inPattern').checked=true;
   document.getElementById('addOverlay').classList.add('on');
-  setTimeout(()=>padInto('inAmt','Amount'),150); // number pad pops up right away
+  // one calm motion: the add screen appears instantly underneath, and only the keypad rises in
+  const addSheet=document.querySelector('#addOverlay .sheet');
+  addSheet.classList.add('still'); setTimeout(()=>addSheet.classList.remove('still'), 400);
+  padInto('inAmt','Amount');
 }
 function openEdit(id){
   const t=state.tx.find(x=>x.id===id); if(!t || t.type!=='exp') return;
