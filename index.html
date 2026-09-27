@@ -511,6 +511,18 @@
   .toast button { background: #f5cf73; color: #5a4232; border: none; border-radius: 100px; padding: 7px 14px; font-weight: 800; font-family: 'Nunito',sans-serif; font-size: 13.5px; cursor: pointer; }
   .drill-day { display: flex; justify-content: space-between; font-family: 'Baloo 2',cursive; font-weight: 700; font-size: 13.5px; color: var(--ink-soft); margin: 10px 0 0; padding: 3px 10px; background: var(--bg); border-radius: 10px; }
   .drill-day span { font-family: 'Nunito',sans-serif; font-size: 12.5px; }
+  /* ---------- budget jars ---------- */
+  .jar-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .jar-card { background: rgba(253,248,234,.76); border: 1.5px solid rgba(255,255,255,.6); border-radius: 22px; padding: 12px 10px 12px; text-align: center; box-shadow: var(--shadow); cursor: pointer; }
+  .jar-card:active { transform: scale(.98); }
+  .jar-card .jar { width: 74px; height: 98px; display: block; margin: 0 auto 4px; }
+  .jar-name { font-family: 'Baloo 2',cursive; font-weight: 600; font-size: 14.5px; line-height: 1.2; min-height: 18px; }
+  .jar-left { font-family: 'Baloo 2',cursive; font-weight: 700; font-size: 19px; color: var(--grass-deep); line-height: 1.2; margin-top: 2px; }
+  .jar-left.neg { color: var(--accent); }
+  .jar-sub { font-size: 12px; color: var(--ink-soft); margin-top: 1px; }
+  .jar-sub .ahead { color: var(--accent); font-weight: 700; }
+  .jar-card.over { border-color: #f0c2b3; }
+  .jar-legend { display: flex; align-items: center; gap: 8px; justify-content: center; font-size: 12.5px; color: var(--ink-soft); margin: -2px 0 12px; text-shadow: 0 0 8px rgba(253,248,234,.95); }
 </style>
 </head>
 <body>
@@ -1672,6 +1684,22 @@ function renderDonut(spentByCat, total){
 function dateOnly(t){ return t.ts % 864e5 === 0; }
 function txDay(t){ if(dateOnly(t)){ const d=new Date(t.ts); return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 12); } return new Date(t.ts); }
 function timeKnown(t){ return !t.backdated && !dateOnly(t); }
+// A cozy glass jar. fill: 0–1 of the budget left; pace: where the level "should" be (0–1) or null.
+function budgetJar(fill, color, icon, pace, over, id){
+  const top=20, bottom=84, h=bottom-top, y=bottom-h*fill;
+  const wave = fill>0.02 ? `<path d="M6 ${y.toFixed(1)} q9 -4 18 0 t18 0 t18 0 t18 0 V96 H6z" fill="${color}" opacity=".78"/><path d="M6 ${(y+1).toFixed(1)} q9 -4 18 0 t18 0 t18 0 t18 0" fill="none" stroke="#fff" stroke-width="1.6" opacity=".5"/>` : '';
+  // "on pace" mark: a short dashed line inside the glass with a little arrow on the edge
+  const py=(bottom-h*pace).toFixed(1);
+  const tick = pace!=null ? `<g><line x1="40" x2="61" y1="${py}" y2="${py}" stroke="#5a4232" stroke-width="2.2" stroke-dasharray="3 2.5" opacity=".8"/><path d="M62 ${py} l6 -4 v8z" fill="#5a4232" opacity=".8"/></g>` : '';
+  const crack = over ? `<path d="M22 44 l6 6 -4 5 7 7" fill="none" stroke="#d98068" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>` : '';
+  return `<svg class="jar" viewBox="0 0 72 96" aria-hidden="true"><defs><clipPath id="jc-${id}"><path d="M10 22h52v60a10 10 0 0 1-10 10H20a10 10 0 0 1-10-10z"/></clipPath></defs>
+    <rect x="16" y="6" width="40" height="10" rx="4.5" fill="#d9b48f" stroke="#8b6a52" stroke-width="2"/>
+    <path d="M13 16h46v6H13z" fill="#e8cfa9" stroke="#8b6a52" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M10 22h52v60a10 10 0 0 1-10 10H20a10 10 0 0 1-10-10z" fill="#fffdf6" stroke="${over?'#d98068':'#8b6a52'}" stroke-width="2.4"/>
+    <g clip-path="url(#jc-${id})">${wave}</g>${crack}${tick}
+    <text x="36" y="62" text-anchor="middle" font-size="20">${icon}</text>
+    <path d="M17 30v18" stroke="#fff" stroke-width="3.5" stroke-linecap="round" opacity=".85"/></svg>`;
+}
 function shortDate(ts){ return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
 
 // Biggest single purchases + places/things you keep coming back to
@@ -1789,19 +1817,26 @@ function render(){
   const now=new Date(); const dayOfMonth=now.getDate();
   const daysInMonth=new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
   const monthProgress=dayOfMonth/daysInMonth;
-  catsEl.innerHTML=state.cats.map(c=>{
+  // budget jars: each jar starts full and drains as you spend; the dashed tick is where you'd be on pace
+  const periodProgress = isWeek ? (((now.getDay()+6)%7)+1)/7 : (viewMonth===monthKey() ? monthProgress : 1);
+  const limited=state.cats.filter(c=>c.limit>0), open=state.cats.filter(c=>!(c.limit>0));
+  catsEl.innerHTML = '<div class="jar-grid">' + limited.map(c=>{
     const sp=spentByCatAllExp[c.id]||0;
     const lim = isWeek ? c.limit/(30/7) : c.limit;
-    const name=`<div class="cat-name"><span class="dot" style="background:${c.color}"></span>${c.icon} ${escHtml(c.name)}<span class="chev">›</span></div>`;
-    if(!(lim>0)){ // no limit (e.g. one-time costs): just show what was spent
-      const note = c.oneTime ? (state.showOneTime ? 'One-time — counted in your totals right now' : 'One-time — kept out of your totals') : 'No limit set';
-      return `<div class="cat tap" onclick="openCatDetail('${c.id}')"><div class="cat-top">${name}<div class="cat-nums"><b>$${fmt(sp)}</b> · no limit</div></div><div class="pace" style="margin-top:0">${note}</div></div>`;
-    }
-    const pct=Math.min(100,(sp/lim)*100);
-    const over=sp>lim; const barColor=over?'var(--accent)':c.color;
-    let pace='';
-    if(!isWeek && viewMonth===monthKey() && sp>0){ const expected=c.limit*monthProgress; if(sp>expected*1.15) pace=`<div class="pace behind">Ahead of pace — ${Math.round(monthProgress*100)}% through month, ${Math.round(sp/c.limit*100)}% of budget used</div>`; }
-    return `<div class="cat tap" onclick="openCatDetail('${c.id}')"><div class="cat-top">${name}<div class="cat-nums ${over?'over':''}"><b>$${fmt(sp)}</b> / $${fmt(Math.round(lim))}</div></div><div class="bar"><i style="width:${pct}%;background:${barColor}"></i></div>${pace}</div>`;
+    const left=r2(lim-sp), over=left<0;
+    const fill=Math.max(0,Math.min(1,left/lim));
+    const paceLeft=1-periodProgress;               // on pace = this much should still be left
+    const ahead = !over && sp>0 && fill < paceLeft-0.08;
+    return `<div class="jar-card tap ${over?'over':''}" onclick="openCatDetail('${c.id}')">
+      ${budgetJar(fill, c.color, c.icon, periodProgress<1 ? paceLeft : null, over, c.id)}
+      <div class="jar-name">${escHtml(c.name)}</div>
+      <div class="jar-left ${over?'neg':''}">${over ? '$'+fmt(-left)+' over' : '$'+fmt(left)+' left'}</div>
+      <div class="jar-sub">${ahead ? '<span class="ahead">spending fast</span> · ' : ''}$${fmt(sp)} of $${fmt(Math.round(lim))}</div>
+    </div>`;
+  }).join('') + '</div>' + (periodProgress<1 && limited.length ? '<div class="jar-legend"><svg width="30" height="10"><line x1="0" x2="22" y1="5" y2="5" stroke="#5a4232" stroke-width="2.2" stroke-dasharray="3 2.5" opacity=".8"/><path d="M23 5 l6 -4 v8z" fill="#5a4232" opacity=".8"/></svg> where the level should be today to stay on budget</div>' : '') + open.map(c=>{
+    const sp=spentByCatAllExp[c.id]||0;
+    const note = c.oneTime ? (state.showOneTime ? 'One-time · counted in your totals right now' : 'One-time · kept out of your totals') : 'No limit set';
+    return `<div class="cat tap" onclick="openCatDetail('${c.id}')"><div class="cat-top"><div class="cat-name"><span class="dot" style="background:${c.color}"></span>${c.icon} ${escHtml(c.name)}<span class="chev">›</span></div><div class="cat-nums"><b>$${fmt(sp)}</b> · no limit</div></div><div class="pace" style="margin-top:0">${note}</div></div>`;
   }).join('');
 
   // three panels
