@@ -1100,8 +1100,10 @@ function fmt(n){ return n.toLocaleString('en-US',{minimumFractionDigits: n%1?2:0
 function catMeta(id){ return (state.cats.find(c=>c.id===id)) || {id, name:'Other', color:'#9a8f7d', icon:'•', limit:0}; }
 function netAmt(t){ return r2((t.amt||0) - (t.reimb||0)); }
 
+let countNext=false;   // set when your money actually changed, so the next redraw counts numbers
 async function save(){
   if(!state || !passcode) return;
+  countNext=true;
   try { localStorage.setItem(STORE_KEY, JSON.stringify(await encryptData(state, passcode))); }
   catch(e){ console.error('save failed', e); }
 }
@@ -2696,12 +2698,13 @@ enhanceSelect('rfDay', ()=>rfFreq==='weekly'?'Which day?':'Which day of the mont
 const COUNT_IDS=['heroLeft','miniIncome','miniSpent','miniBudget','panelSaveAmt','panelWeekAmt','panelIncAmt','debitAmt','walletAmt','ccAmt'];
 const reduceMotion=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 function countNumbers(){
+  const animate=countNext; countNext=false;
   COUNT_IDS.forEach(id=>{
     const el=document.getElementById(id); if(!el) return;
     const txt=el.textContent, m=txt.match(/^([+-]?)(\$?)([0-9,]+(?:\.[0-9]+)?)(.*)$/); if(!m) return;
     const to=(m[1]==='-'?-1:1)*parseFloat(m[3].replace(/,/g,'')), dec=(m[3].split('.')[1]||'').length;
     const from=el.dataset.v!==undefined ? +el.dataset.v : null; el.dataset.v=to;
-    if(from===null || from===to || reduceMotion()) return;
+    if(!animate || from===null || from===to || reduceMotion()) return;
     const signed = m[1]!=='';                      // "+$7.57" style shows a sign; "$313.50" only shows "-" when negative
     const show=v=>(v<0?'-':(signed?'+':''))+m[2]+Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec})+m[4];
     const t0=performance.now(), dur=520;
