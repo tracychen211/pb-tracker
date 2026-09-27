@@ -506,7 +506,7 @@
   .pay-after b { color: var(--ink); }
   .pay-after .warn { color: var(--accent); font-weight: 700; }
   /* ---------- undo toast ---------- */
-  .toast { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(10px); z-index: 90; background: #5a4232; color: #fdf6e7; border-radius: 100px; padding: 8px 8px 8px 18px; display: flex; align-items: center; gap: 12px; font-size: 14px; box-shadow: 0 6px 20px rgba(74,64,49,.3); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; max-width: calc(100vw - 32px); white-space: nowrap; }
+  .toast { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(10px); z-index: 310; background: #5a4232; color: #fdf6e7; border-radius: 100px; padding: 8px 8px 8px 18px; display: flex; align-items: center; gap: 12px; font-size: 14px; box-shadow: 0 6px 20px rgba(74,64,49,.3); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; max-width: calc(100vw - 32px); white-space: nowrap; }
   .toast.on { opacity: 1; transform: translateX(-50%); pointer-events: auto; }
   .toast button { background: #f5cf73; color: #5a4232; border: none; border-radius: 100px; padding: 7px 14px; font-weight: 800; font-family: 'Nunito',sans-serif; font-size: 13.5px; cursor: pointer; }
   .drill-day { display: flex; justify-content: space-between; font-family: 'Baloo 2',cursive; font-weight: 700; font-size: 13.5px; color: var(--ink-soft); margin: 10px 0 0; padding: 3px 10px; background: var(--bg); border-radius: 10px; }
@@ -522,7 +522,30 @@
   .jar-sub { font-size: 12px; color: var(--ink-soft); margin-top: 1px; }
   .jar-sub .ahead { color: var(--accent); font-weight: 700; }
   .jar-card.over { border-color: #f0c2b3; }
-  .jar-legend { display: flex; align-items: center; gap: 8px; justify-content: center; font-size: 12.5px; color: var(--ink-soft); margin: -2px 0 12px; text-shadow: 0 0 8px rgba(253,248,234,.95); }
+  .jar-legend { display: flex; align-items: center; gap: 8px; justify-content: center; font-size: 12.5px; color: var(--ink-soft); margin: -2px auto 12px; background: rgba(253,248,234,.85); border-radius: 100px; padding: 6px 14px; width: max-content; max-width: 100%; }
+  /* ---------- quick add ---------- */
+  .qa-lbl { font-size: 12px; font-weight: 800; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .05em; margin: 0 0 6px; }
+  .qa-row { display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 12px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .qa-row::-webkit-scrollbar { display: none; }
+  .qa { flex-shrink: 0; display: flex; align-items: center; gap: 6px; background: #fbf0d6; border: 1.5px solid #ecdcb0; border-radius: 100px; padding: 7px 12px 7px 10px; font-size: 13.5px; font-weight: 700; color: #6a4f3d; cursor: pointer; font-family: 'Nunito',sans-serif; white-space: nowrap; }
+  .qa small { font-family: 'Baloo 2',cursive; color: #b0643a; font-size: 13.5px; }
+  .qa:active { transform: scale(.97); }
+  /* ---------- autofill ---------- */
+  .ac-wrap { position: relative; }
+  .ac { background: #fff; border: 1.5px solid var(--line); border-radius: 14px; margin-top: 6px; box-shadow: 0 6px 16px rgba(74,64,49,.12); overflow: hidden; }
+  .ac button { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 10px 13px; border: none; border-bottom: 1px dotted var(--line); background: none; font-family: 'Nunito',sans-serif; font-size: 14.5px; color: var(--ink); cursor: pointer; }
+  .ac button:last-child { border-bottom: none; }
+  .ac button:active { background: #fdf3e1; }
+  .ac .s { font-size: 12px; color: var(--ink-soft); display: block; }
+  .ac .amt { margin-left: auto; font-family: 'Baloo 2',cursive; font-weight: 700; flex-shrink: 0; }
+  /* ---------- recurring ---------- */
+  .head-btns { display: flex; gap: 12px; }
+  .rc { display: flex; align-items: center; gap: 12px; padding: 12px 2px; border-bottom: 1.5px dotted var(--line); cursor: pointer; }
+  .rc:last-child { border-bottom: none; }
+  .rc .m { flex: 1; min-width: 0; } .rc .m b { font-size: 15px; } .rc .m small { display: block; font-size: 12.5px; color: var(--ink-soft); }
+  .rc .a { font-family: 'Baloo 2',cursive; font-weight: 700; font-size: 16px; text-align: right; }
+  .rc .next { font-size: 11px; background: var(--sage); color: var(--sage-ink); border-radius: 100px; padding: 2px 8px; font-weight: 800; white-space: nowrap; }
+  .rc-chip { background: #e8e0f3; color: #6f5a92; }
 </style>
 </head>
 <body>
@@ -661,7 +684,7 @@
 
 <!-- ================= ACTIVITY ================= -->
 <section class="tab" data-tab="activity" style="display:none">
-<div class="sec-head"><h2 id="activityTitle">📖 Recent activity</h2><button class="edit" onclick="addPaycheck()">+ Income</button></div>
+<div class="sec-head"><h2 id="activityTitle">📖 Recent activity</h2><div class="head-btns"><button class="edit" onclick="openRecurring()">🔁 Recurring</button><button class="edit" onclick="addPaycheck()">+ Income</button></div></div>
 <div class="filterbar" id="filterBar">
   <button data-f="all" onclick="setTxFilter('all')">All</button>
   <button data-f="spend" onclick="setTxFilter('spend')">Spending</button>
@@ -715,7 +738,8 @@
   <div class="sheet">
     <h3 id="addTitle">Add expense</h3>
     <div class="field"><label>Amount</label><input type="text" readonly inputmode="none" id="inAmt" class="amount-big amt-tap" placeholder="$0.00" onclick="padInto('inAmt','Amount')"></div>
-    <div class="field"><label>What was it?</label><input type="text" id="inNote" placeholder="e.g. lunch with friends"></div>
+    <div id="qaAdd"></div>
+    <div class="field ac-wrap"><label>What was it?</label><input type="text" id="inNote" placeholder="e.g. lunch with friends" autocomplete="off" oninput="showSuggest()" onfocus="showSuggest()" onblur="setTimeout(hideSuggest,180)"><div class="ac" id="acList" style="display:none"></div></div>
     <div class="field"><label>Got paid back? (Venmo/Zelle) — optional</label><input type="text" readonly inputmode="none" id="inReimb" class="amt-tap" placeholder="$0.00" onclick="padInto('inReimb','Paid back')"></div>
     <div class="field"><label>Category</label><select id="inCat"></select></div>
     <div class="field"><label>Paid with</label>
@@ -735,6 +759,7 @@
     </div>
     <label class="chk-row"><input type="checkbox" id="inPattern" checked><span>Count in <b>When you spend</b><small>Turn off if you don't remember when you bought it</small></span></label>
     <div class="sheet-btns"><button class="btn-ghost" onclick="closeAdd()">Cancel</button><button class="btn-primary" id="addSaveBtn" onclick="saveExpense()">Add</button></div>
+    <button class="kb-link" id="addRecurBtn" onclick="makeRecurringFromEdit()" style="display:none;width:100%">🔁 Make this a recurring charge</button>
     <button class="btn-danger" id="addDeleteBtn" onclick="deleteEditing()" style="display:none">Delete this transaction</button>
   </div>
 </div>
@@ -757,6 +782,7 @@
     <div class="desc">Your data is encrypted on this device with your passcode. Export a backup to move it to another device.</div>
     <div class="menu-list">
       <button onclick="exportBackup()"><span class="mi">⬇️</span><span>Export encrypted backup<small>Downloads a .pbk file for another device</small></span></button>
+      <button onclick="closeMenu();openRecurring()"><span class="mi">🔁</span><span>Recurring charges<small>Subscriptions & bills that log themselves</small></span></button>
       <button onclick="exportCSV()"><span class="mi">📊</span><span>Export to CSV<small>All transactions as a spreadsheet · not encrypted</small></span></button>
       <button onclick="document.getElementById('importFile').click()"><span class="mi">⬆️</span><span>Import a backup<small>Replaces current data with a backup file</small></span></button>
       <button onclick="setName()"><span class="mi">👋</span><span>Your name<small id="nameSmall">Shows on the lock screen</small></span></button>
@@ -766,6 +792,34 @@
       <button onclick="resetEverything()" style="border-color:#e8c5b8"><span class="mi">🧹</span><span style="color:var(--accent)">Reset everything<small>Wipes all data and balances back to zero</small></span></button>
     </div>
     <div class="sheet-btns"><button class="btn-ghost" style="flex:1" onclick="closeMenu()">Close</button></div>
+  </div>
+</div>
+
+<!-- RECURRING CHARGES -->
+<div class="overlay" id="recurOverlay">
+  <div class="sheet">
+    <h3>🔁 Recurring charges</h3>
+    <div class="desc">These log themselves on their day, so you never have to remember them.</div>
+    <div id="recurList"></div>
+    <div class="sheet-btns"><button class="btn-ghost" onclick="closeOv('recurOverlay')">Done</button><button class="btn-primary" onclick="openRecurForm()">＋ Add recurring</button></div>
+  </div>
+</div>
+<div class="overlay" id="recurFormOverlay">
+  <div class="sheet">
+    <h3 id="rfTitle">New recurring charge</h3>
+    <div class="field"><label>Type</label><div class="seg" id="rfType">
+      <button data-t="exp" onclick="rfPickType('exp')">💸 Expense</button><button data-t="income" onclick="rfPickType('income')">💰 Income</button></div></div>
+    <div class="field"><label>Amount</label><input type="text" readonly inputmode="none" id="rfAmt" class="amount-big amt-tap" placeholder="$0.00" onclick="padInto('rfAmt','Amount')"></div>
+    <div class="field"><label>Name</label><input type="text" id="rfNote" placeholder="e.g. Spotify, phone bill, paycheck"></div>
+    <div class="field rf-exp"><label>Category</label><select id="rfCat"></select></div>
+    <div class="field rf-exp"><label>Paid with</label><div class="seg" id="rfPay">
+      <button data-pay="cash" onclick="rfPickPay('cash')">💵 Cash</button><button data-pay="debit" onclick="rfPickPay('debit')">🏦 Debit</button><button data-pay="card" onclick="rfPickPay('card')">💳 Credit</button></div></div>
+    <div class="field"><label>Repeats</label><div class="seg" id="rfFreq">
+      <button data-f="monthly" onclick="rfPickFreq('monthly')">Every month</button><button data-f="weekly" onclick="rfPickFreq('weekly')">Every week</button></div></div>
+    <div class="field"><label id="rfDayLbl">On day</label><select id="rfDay"></select></div>
+    <div class="pay-after" id="rfNext"></div>
+    <div class="sheet-btns"><button class="btn-ghost" onclick="closeOv('recurFormOverlay');openRecurring()">Cancel</button><button class="btn-primary" id="rfSave" onclick="saveRecurring()">Save</button></div>
+    <button class="btn-danger" id="rfDelete" onclick="deleteRecurring()" style="display:none">Delete this recurring charge</button>
   </div>
 </div>
 
@@ -852,6 +906,7 @@
   <div class="sheet pad-sheet">
     <h3 id="padTitle">Amount</h3>
     <div class="desc" id="padSub" style="display:none"></div>
+    <div id="padExtra"></div>
     <div class="calc"><svg class="sparkle" viewBox="0 0 26 26" fill="none" stroke="#8b6a52" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7c.6 3.4 1.6 4.4 5 5-3.4.6-4.4 1.6-5 5-.6-3.4-1.6-4.4-5-5 3.4-.6 4.4-1.6 5-5z"/><path d="M20 3l1 -2M23 6l2 -1"/></svg>
       <div class="calc-screen empty" id="padDisplay">$0</div>
       <div class="keypad" id="padKeys"></div>
@@ -1109,6 +1164,7 @@ function finishUnlock(){
   updateNameMenu(); updateAutoLockMenu();
   maybeRemindBackup();
   render();
+  processRecurring();
 }
 
 // ---------- cozy pop-ups (instead of the browser's grey alert/confirm/prompt) ----------
@@ -1161,6 +1217,7 @@ function askPad(opts){
     const sub=document.getElementById('padSub');
     sub.textContent=opts.sub||''; sub.style.display=opts.sub?'block':'none';
     document.getElementById('padKeys').innerHTML=keypadHTML('padKey', mode==='amount');
+    document.getElementById('padExtra').innerHTML=opts.extra||'';
     renderPad();
     document.getElementById('padOverlay').classList.add('on');
     if(document.activeElement && document.activeElement.blur) document.activeElement.blur();
@@ -1197,9 +1254,9 @@ async function askAmount(title, initial, sub){
   if(s===null) return null;
   return r2(parseFloat(s)||0);
 }
-async function padInto(id, title){
+async function padInto(id, title, extra){
   const el=document.getElementById(id);
-  const v=await askPad({title, mode:'amount', initial: el.value});
+  const v=await askPad({title, mode:'amount', initial: el.value, extra});
   if(v!==null) el.value = v && parseFloat(v)>0 ? '$'+v : '';
 }
 function readMoney(id){ return parseFloat(document.getElementById(id).value.replace(/[^0-9.]/g,'')) || 0; }
@@ -1239,7 +1296,7 @@ document.addEventListener('visibilitychange', ()=>{
     if(state && autoLockSecs()===0) lockNow();
   } else if(state && hiddenAt!==null && Date.now()-hiddenAt >= autoLockSecs()*1000){
     lockNow();
-  }
+  } else if(state){ processRecurring(); }
 });
 // coming back to a page Chrome kept in memory counts as reopening
 addEventListener('pageshow', e=>{ if(e.persisted && state) lockNow(); });
@@ -1395,6 +1452,7 @@ function openAdd(){
   document.getElementById('addTitle').textContent='Add expense';
   document.getElementById('addSaveBtn').textContent='Add';
   document.getElementById('addDeleteBtn').style.display='none';
+  document.getElementById('addRecurBtn').style.display='none';
   document.getElementById('inAmt').value=''; document.getElementById('inNote').value=''; document.getElementById('inReimb').value='';
   fillCatSelect(document.getElementById('inCat'));
   payMethod='cash'; document.querySelectorAll('#paySeg button').forEach(b=>b.classList.toggle('act', b.dataset.pay==='cash'));
@@ -1404,7 +1462,8 @@ function openAdd(){
   // one calm motion: the add screen appears instantly underneath, and only the keypad rises in
   const addSheet=document.querySelector('#addOverlay .sheet');
   addSheet.classList.add('still'); setTimeout(()=>addSheet.classList.remove('still'), 400);
-  padInto('inAmt','Amount');
+  renderQuickAdd();
+  padInto('inAmt','Amount', quickAddHTML());
 }
 function openEdit(id){
   const t=state.tx.find(x=>x.id===id); if(!t || t.type!=='exp') return;
@@ -1412,11 +1471,13 @@ function openEdit(id){
   document.getElementById('addTitle').textContent='Edit expense';
   document.getElementById('addSaveBtn').textContent='Save';
   document.getElementById('addDeleteBtn').style.display='block';
+  document.getElementById('addRecurBtn').style.display='block';
   document.getElementById('inAmt').value='$'+t.amt; document.getElementById('inNote').value=t.note||''; document.getElementById('inReimb').value=t.reimb?'$'+t.reimb:'';
   fillCatSelect(document.getElementById('inCat')); document.getElementById('inCat').value=t.cat;
   payMethod=t.pay; document.querySelectorAll('#paySeg button').forEach(b=>b.classList.toggle('act', b.dataset.pay===t.pay));
   editOrigTs=t.ts; setDayFromTs(t.ts);
   document.getElementById('inPattern').checked=!t.noPattern;
+  document.getElementById('qaAdd').innerHTML=''; hideSuggest();
   document.getElementById('addOverlay').classList.add('on');
 }
 function closeAdd(){ document.getElementById('addOverlay').classList.remove('on'); backToReview(); }
@@ -1538,14 +1599,17 @@ function reverseMove(t){
 // little "Paid … · Undo" bar for a few seconds after paying
 let toastTimer=null, toastTxId=null;
 function showToast(msg, txId){
-  toastTxId=txId; document.getElementById('toastMsg').textContent=msg;
+  toastTxId=[].concat(txId); document.getElementById('toastMsg').textContent=msg;
   document.getElementById('toast').classList.add('on');
   clearTimeout(toastTimer); toastTimer=setTimeout(hideToast, 7000);
 }
 function hideToast(){ document.getElementById('toast').classList.remove('on'); toastTxId=null; }
 async function toastUndo(){
-  const t=state.tx.find(x=>x.id===toastTxId); hideToast(); if(!t) return;
-  reverseMove(t); await save(); render();
+  const ids=toastTxId||[]; hideToast();
+  ids.forEach(id=>{ const t=state.tx.find(x=>x.id===id); if(!t) return;
+    if(t.type==='exp'){ applyAccount(t.pay, t.amt, -1); applyReimb(t.reimb||0, -1); state.tx=state.tx.filter(x=>x.id!==id); }
+    else reverseMove(t); });
+  await save(); render();
 }
 // Tap a paycheck, card payoff, or withdrawal: see it, change a paycheck's amount, or remove it
 async function undoTx(id){
@@ -1684,14 +1748,14 @@ function renderDonut(spentByCat, total){
 function dateOnly(t){ return t.ts % 864e5 === 0; }
 function txDay(t){ if(dateOnly(t)){ const d=new Date(t.ts); return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 12); } return new Date(t.ts); }
 function timeKnown(t){ return !t.backdated && !dateOnly(t); }
-// A cozy glass jar. fill: 0–1 of the budget left; pace: where the level "should" be (0–1) or null.
+// A cozy glass jar. fill: 0–1 of the budget used; pace: how full it can be by today (0–1) or null.
 function budgetJar(fill, color, icon, pace, over, id){
   const top=20, bottom=84, h=bottom-top, y=bottom-h*fill;
   const wave = fill>0.02 ? `<path d="M6 ${y.toFixed(1)} q9 -4 18 0 t18 0 t18 0 t18 0 V96 H6z" fill="${color}" opacity=".78"/><path d="M6 ${(y+1).toFixed(1)} q9 -4 18 0 t18 0 t18 0 t18 0" fill="none" stroke="#fff" stroke-width="1.6" opacity=".5"/>` : '';
   // "on pace" mark: a short dashed line inside the glass with a little arrow on the edge
   const py=(bottom-h*pace).toFixed(1);
   const tick = pace!=null ? `<g><line x1="40" x2="61" y1="${py}" y2="${py}" stroke="#5a4232" stroke-width="2.2" stroke-dasharray="3 2.5" opacity=".8"/><path d="M62 ${py} l6 -4 v8z" fill="#5a4232" opacity=".8"/></g>` : '';
-  const crack = over ? `<path d="M22 44 l6 6 -4 5 7 7" fill="none" stroke="#d98068" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>` : '';
+  const crack = over ? `<path d="M58 20 q6 2 6 9 q0 4 -3 4 q-3 0 -3 -4 z" fill="${color}" opacity=".8"/><circle cx="64" cy="40" r="2.2" fill="${color}" opacity=".7"/>` : '';
   return `<svg class="jar" viewBox="0 0 72 96" aria-hidden="true"><defs><clipPath id="jc-${id}"><path d="M10 22h52v60a10 10 0 0 1-10 10H20a10 10 0 0 1-10-10z"/></clipPath></defs>
     <rect x="16" y="6" width="40" height="10" rx="4.5" fill="#d9b48f" stroke="#8b6a52" stroke-width="2"/>
     <path d="M13 16h46v6H13z" fill="#e8cfa9" stroke="#8b6a52" stroke-width="2" stroke-linejoin="round"/>
@@ -1817,23 +1881,23 @@ function render(){
   const now=new Date(); const dayOfMonth=now.getDate();
   const daysInMonth=new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
   const monthProgress=dayOfMonth/daysInMonth;
-  // budget jars: each jar starts full and drains as you spend; the dashed tick is where you'd be on pace
+  // budget jars: each jar fills up as you spend; the dashed mark is how full it can be by today to stay on pace
   const periodProgress = isWeek ? (((now.getDay()+6)%7)+1)/7 : (viewMonth===monthKey() ? monthProgress : 1);
   const limited=state.cats.filter(c=>c.limit>0), open=state.cats.filter(c=>!(c.limit>0));
   catsEl.innerHTML = '<div class="jar-grid">' + limited.map(c=>{
     const sp=spentByCatAllExp[c.id]||0;
     const lim = isWeek ? c.limit/(30/7) : c.limit;
     const left=r2(lim-sp), over=left<0;
-    const fill=Math.max(0,Math.min(1,left/lim));
-    const paceLeft=1-periodProgress;               // on pace = this much should still be left
-    const ahead = !over && sp>0 && fill < paceLeft-0.08;
+    const fill=Math.max(0,Math.min(1,sp/lim));       // how much of the budget you've used
+    const pace=periodProgress;                         // on pace = no fuller than this yet
+    const ahead = !over && sp>0 && fill > pace+0.08;
     return `<div class="jar-card tap ${over?'over':''}" onclick="openCatDetail('${c.id}')">
-      ${budgetJar(fill, c.color, c.icon, periodProgress<1 ? paceLeft : null, over, c.id)}
+      ${budgetJar(fill, c.color, c.icon, periodProgress<1 ? pace : null, over, c.id)}
       <div class="jar-name">${escHtml(c.name)}</div>
       <div class="jar-left ${over?'neg':''}">${over ? '$'+fmt(-left)+' over' : '$'+fmt(left)+' left'}</div>
       <div class="jar-sub">${ahead ? '<span class="ahead">spending fast</span> · ' : ''}$${fmt(sp)} of $${fmt(Math.round(lim))}</div>
     </div>`;
-  }).join('') + '</div>' + (periodProgress<1 && limited.length ? '<div class="jar-legend"><svg width="30" height="10"><line x1="0" x2="22" y1="5" y2="5" stroke="#5a4232" stroke-width="2.2" stroke-dasharray="3 2.5" opacity=".8"/><path d="M23 5 l6 -4 v8z" fill="#5a4232" opacity=".8"/></svg> where the level should be today to stay on budget</div>' : '') + open.map(c=>{
+  }).join('') + '</div>' + (periodProgress<1 && limited.length ? '<div class="jar-legend"><svg width="30" height="10"><line x1="0" x2="22" y1="5" y2="5" stroke="#5a4232" stroke-width="2.2" stroke-dasharray="3 2.5" opacity=".8"/><path d="M23 5 l6 -4 v8z" fill="#5a4232" opacity=".8"/></svg> stay under this line to be on budget today</div>' : '') + open.map(c=>{
     const sp=spentByCatAllExp[c.id]||0;
     const note = c.oneTime ? (state.showOneTime ? 'One-time · counted in your totals right now' : 'One-time · kept out of your totals') : 'No limit set';
     return `<div class="cat tap" onclick="openCatDetail('${c.id}')"><div class="cat-top"><div class="cat-name"><span class="dot" style="background:${c.color}"></span>${c.icon} ${escHtml(c.name)}<span class="chev">›</span></div><div class="cat-nums"><b>$${fmt(sp)}</b> · no limit</div></div><div class="pace" style="margin-top:0">${note}</div></div>`;
@@ -1860,13 +1924,14 @@ const OTHER_TX = {
 function txRowHTML(t, fromDetail, showTime){
   if(t.type!=='exp'){
     const o=OTHER_TX[t.type==='payoff' && t.from==='cash' ? 'payoffCash' : t.type]; if(!o) return '';
-    return `<div class="tx" onclick="undoTx(${t.id})"><div class="tx-ic">${o.ic}</div><div class="tx-mid"><div class="t1">${o.t1}</div><div class="t2">${o.t2} · ${shortDate(t.ts)}</div></div><div class="tx-amt ${o.cls}">${o.pre}$${fmt(t.amt)}</div><span class="tx-chev">›</span></div>`;
+    return `<div class="tx" onclick="undoTx(${t.id})"><div class="tx-ic">${o.ic}</div><div class="tx-mid"><div class="t1">${t.rid&&t.note?escHtml(t.note):o.t1}${t.rid?' <span class="pay-chip rc-chip">recurring</span>':''}</div><div class="t2">${o.t2} · ${shortDate(t.ts)}</div></div><div class="tx-amt ${o.cls}">${o.pre}$${fmt(t.amt)}</div><span class="tx-chev">›</span></div>`;
   }
   const m=catMeta(t.cat); let chip='';
   if(t.pay==='cash') chip='<span class="pay-chip pay-cash">cash</span>';
   else if(t.pay==='debit') chip='<span class="pay-chip pay-debit">debit</span>';
   else chip='<span class="pay-chip pay-card">credit</span>';
   if(m.oneTime) chip+=' <span class="pay-chip ot-chip">one-time</span>';
+  if(t.rid) chip+=' <span class="pay-chip rc-chip">recurring</span>';
   const hasReimb = (t.reimb||0) > 0;
   const reimbChip = hasReimb ? ` <span class="pay-chip" style="background:var(--sage);color:var(--sage-ink)">−$${fmt(t.reimb)} back</span>` : '';
   const amtHtml = hasReimb
@@ -2058,6 +2123,180 @@ function renderTrend(txExp, budgetMonthly){
   el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Running total">${g}</svg>${foot}`;
 }
 
+// ---------- quick add + autofill: learn from what you've logged before ----------
+function normNote(n){ return (n||'').toLowerCase().trim().replace(/\s+/g,' '); }
+// One entry per thing you buy, with its most recent amount, category and payment method.
+function purchaseHistory(){
+  const groups={};
+  state.tx.filter(t=>t.type==='exp' && t.note && t.note.trim()).sort((a,b)=>b.ts-a.ts).forEach(t=>{
+    const k=normNote(t.note);
+    if(!groups[k]) groups[k]={ note:t.note.trim(), amt:t.amt, cat:t.cat, pay:t.pay, n:0, last:t.ts, recent:0 };
+    groups[k].n++;
+    if(t.ts > Date.now()-60*864e5) groups[k].recent++;
+  });
+  return Object.values(groups).filter(g=>!(catMeta(g.cat).oneTime));
+}
+function quickAddItems(){
+  // things you've bought 2+ times, favoring the last two months
+  return purchaseHistory().filter(g=>g.n>=2).sort((a,b)=>(b.recent*2+b.n)-(a.recent*2+a.n) || b.last-a.last).slice(0,8);
+}
+function quickAddButtons(){
+  return quickAddItems().map((g,i)=>`<button type="button" class="qa" onclick="useQuickAdd(${i})">${catMeta(g.cat).icon} ${escHtml(g.note)} <small>$${fmt(g.amt)}</small></button>`).join('');
+}
+function quickAddHTML(){ const b=quickAddButtons(); return b ? `<div class="qa-lbl">⭐ Quick add</div><div class="qa-row">${b}</div>` : ''; }
+function renderQuickAdd(){ document.getElementById('qaAdd').innerHTML = quickAddHTML(); }
+function fillFrom(g, withAmount){
+  document.getElementById('inNote').value=g.note;
+  if(withAmount) document.getElementById('inAmt').value='$'+(Number.isInteger(g.amt)?g.amt:g.amt.toFixed(2));
+  document.getElementById('inCat').value=g.cat;
+  payMethod=g.pay; document.querySelectorAll('#paySeg button').forEach(b=>b.classList.toggle('act', b.dataset.pay===g.pay));
+}
+function useQuickAdd(i){
+  const g=quickAddItems()[i]; if(!g) return;
+  if(padState) closePad(null);         // skip the keypad — everything's filled in
+  fillFrom(g, true); hideSuggest();
+}
+function showSuggest(){
+  const el=document.getElementById('acList'), q=normNote(document.getElementById('inNote').value);
+  if(editingId || q.length<1){ el.style.display='none'; return; }
+  const hist=purchaseHistory();
+  const hits=hist.filter(g=>normNote(g.note).startsWith(q)).concat(hist.filter(g=>!normNote(g.note).startsWith(q) && normNote(g.note).includes(q)))
+    .filter(g=>normNote(g.note)!==q).slice(0,4);
+  if(!hits.length){ el.style.display='none'; return; }
+  window._acHits=hits;
+  el.innerHTML=hits.map((g,i)=>{ const m=catMeta(g.cat);
+    return `<button type="button" onmousedown="event.preventDefault()" onclick="pickSuggest(${i})"><span>${m.icon}</span><span>${escHtml(g.note)}<span class="s">${escHtml(m.name)} · ${PAY_NAMES[g.pay]||g.pay} · ${g.n} ${g.n===1?'time':'times'}</span></span><span class="amt">~$${fmt(g.amt)}</span></button>`; }).join('');
+  el.style.display='block';
+}
+function hideSuggest(){ const el=document.getElementById('acList'); if(el) el.style.display='none'; }
+function pickSuggest(i){
+  const g=(window._acHits||[])[i]; if(!g) return;
+  // fill the amount only if you haven't typed one yet
+  fillFrom(g, !(readMoney('inAmt')>0)); hideSuggest();
+}
+
+// ---------- recurring charges: log themselves on their day ----------
+const WEEKDAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+function ordinal(n){ const s=['th','st','nd','rd'], v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]); }
+// the date this rule lands on in a given month/week
+function occurrencesBetween(r, fromDay, toDay){ // fromDay/toDay: Date at local midnight, inclusive
+  const out=[]; const d=new Date(fromDay);
+  while(d<=toDay){
+    if(r.freq==='weekly'){ if(d.getDay()===r.day) out.push(new Date(d)); }
+    else { const dim=new Date(d.getFullYear(), d.getMonth()+1, 0).getDate(); if(d.getDate()===Math.min(r.day, dim)) out.push(new Date(d)); }
+    d.setDate(d.getDate()+1);
+  }
+  return out;
+}
+function nextOccurrence(r){
+  const start=new Date(); start.setHours(0,0,0,0);
+  if(r.lastRun){ const [y,m,dd]=r.lastRun.split('-').map(Number); const lr=new Date(y,m-1,dd); lr.setDate(lr.getDate()+1); if(lr>start) start.setTime(lr.getTime()); }
+  const end=new Date(start); end.setDate(end.getDate()+40);
+  return occurrencesBetween(r, start, end)[0];
+}
+// Log anything that came due since the last time the app was open.
+async function processRecurring(){
+  if(!state || !state.recurring || !state.recurring.length) return;
+  const today=new Date(); today.setHours(0,0,0,0);
+  const made=[];
+  state.recurring.forEach(r=>{
+    let from;
+    if(r.lastRun){ const [y,m,dd]=r.lastRun.split('-').map(Number); from=new Date(y,m-1,dd); from.setDate(from.getDate()+1); }
+    else { from=new Date(r.created); from.setHours(0,0,0,0); }
+    const cap=new Date(today); cap.setDate(cap.getDate()-62); if(from<cap) from=cap;   // never backfill more than ~2 months
+    occurrencesBetween(r, from, today).forEach(day=>{
+      const ts=new Date(day.getFullYear(), day.getMonth(), day.getDate(), 12).getTime();
+      const t = r.type==='income'
+        ? { id:newId(), amt:r.amt, type:'income', ts, rid:r.id, note:r.note }
+        : { id:newId(), amt:r.amt, cat:r.cat, pay:r.pay, note:r.note, reimb:0, ts, type:'exp', rid:r.id, backdated:true };
+      if(r.type==='income') state.debit=r2(state.debit+r.amt); else applyAccount(r.pay, r.amt, +1);
+      state.tx.unshift(t); made.push(t);
+    });
+    r.lastRun=isoDay(today);
+  });
+  await save();
+  if(made.length){
+    render();
+    showToast(made.length===1 ? `🔁 Logged ${made[0].note} · $${fmt(made[0].amt)}` : `🔁 Logged ${made.length} recurring charges`, made.map(t=>t.id));
+  }
+}
+function recurLine(r){
+  const when = r.freq==='weekly' ? `every ${WEEKDAYS[r.day]}` : `every month on the ${ordinal(r.day)}`;
+  return r.type==='income' ? `into debit · ${when}` : `${escHtml(catMeta(r.cat).name)} · ${(PAY_NAMES[r.pay]||r.pay).toLowerCase()} · ${when}`;
+}
+function openRecurring(){
+  const el=document.getElementById('recurList'), list=state.recurring||[];
+  el.innerHTML = list.length ? list.map(r=>{ const nx=nextOccurrence(r), ic=r.type==='income'?'💰':catMeta(r.cat).icon;
+      return `<div class="rc" onclick="openRecurForm('${r.id}')"><div class="tx-ic">${ic}</div><div class="m"><b>${escHtml(r.note)}</b><small>${recurLine(r)}</small></div>
+        <div><div class="a" ${r.type==='income'?'style="color:var(--grass-deep)"':''}>${r.type==='income'?'+':''}$${fmt(r.amt)}</div>${nx?`<span class="next">${nx.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>`:''}</div></div>`; }).join('')
+    : '<div class="empty">Nothing yet. Add your subscriptions, phone bill or paycheck and they’ll log themselves.</div>';
+  document.getElementById('recurOverlay').classList.add('on');
+}
+let rfEditId=null, rfType='exp', rfPay='card', rfFreq='monthly';
+function rfPickType(t){ rfType=t; document.querySelectorAll('#rfType button').forEach(b=>b.classList.toggle('act', b.dataset.t===t)); document.querySelectorAll('.rf-exp').forEach(e=>e.style.display = t==='exp' ? '' : 'none'); rfUpdate(); }
+function rfPickPay(p){ rfPay=p; document.querySelectorAll('#rfPay button').forEach(b=>b.classList.toggle('act', b.dataset.pay===p)); }
+function rfPickFreq(f, keepDay){
+  rfFreq=f; document.querySelectorAll('#rfFreq button').forEach(b=>b.classList.toggle('act', b.dataset.f===f));
+  const sel=document.getElementById('rfDay'), old=sel.value;
+  document.getElementById('rfDayLbl').textContent = f==='weekly' ? 'On' : 'On day';
+  sel.innerHTML = f==='weekly' ? WEEKDAYS.map((d,i)=>`<option value="${i}">${d}</option>`).join('')
+    : Array.from({length:31},(_,i)=>`<option value="${i+1}">${ordinal(i+1)}${i+1>28?' (or last day)':''}</option>`).join('');
+  sel.value = keepDay!=null ? keepDay : (f==='weekly' ? new Date().getDay() : new Date().getDate());
+  sel.onchange=rfUpdate; rfUpdate();
+}
+function rfUpdate(){
+  const r={ freq:rfFreq, day:+document.getElementById('rfDay').value, lastRun:isoDay(new Date()) };
+  const existing=rfEditId && (state.recurring||[]).find(x=>x.id===rfEditId);
+  if(existing) r.lastRun=existing.lastRun;
+  const nx=nextOccurrence(r);
+  document.getElementById('rfNext').innerHTML = nx ? `Next one logs on <b>${nx.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}</b>.` : '';
+}
+function openRecurForm(id, prefill){
+  closeOv('recurOverlay');
+  rfEditId=id||null;
+  const r = id ? state.recurring.find(x=>x.id===id) : (prefill||null);
+  document.getElementById('rfTitle').textContent = id ? 'Edit recurring charge' : 'New recurring charge';
+  fillCatSelect(document.getElementById('rfCat'));
+  document.getElementById('rfAmt').value = r ? '$'+r.amt : '';
+  document.getElementById('rfNote').value = r ? r.note : '';
+  if(r && r.cat) document.getElementById('rfCat').value=r.cat;
+  rfPickType(r ? (r.type||'exp') : 'exp'); rfPickPay(r && r.pay ? r.pay : 'card');
+  rfPickFreq(r ? r.freq : 'monthly', r && id ? r.day : undefined);
+  document.getElementById('rfDelete').style.display = id ? 'block' : 'none';
+  document.getElementById('recurFormOverlay').classList.add('on');
+}
+async function saveRecurring(){
+  const amt=readMoney('rfAmt'), note=document.getElementById('rfNote').value.trim();
+  if(!(amt>0)){ await appAlert('How much is it?', 'Tap the amount to enter it.', '🪙'); return; }
+  if(!note){ await appAlert('What is it?', 'Give it a name, like “Spotify” or “Phone bill.”', '✏️'); return; }
+  const day=+document.getElementById('rfDay').value;
+  if(!state.recurring) state.recurring=[];
+  if(rfEditId){
+    const r=state.recurring.find(x=>x.id===rfEditId);
+    Object.assign(r, { type:rfType, amt, note, cat:document.getElementById('rfCat').value, pay:rfPay, freq:rfFreq, day });
+  } else {
+    // starts fresh: nothing is logged for days before today
+    const y=new Date(); y.setDate(y.getDate()-1);
+    state.recurring.push({ id:'r'+Date.now(), type:rfType, amt, note, cat:document.getElementById('rfCat').value, pay:rfPay, freq:rfFreq, day, created:Date.now(), lastRun:isoDay(y) });
+  }
+  await save(); closeOv('recurFormOverlay');
+  await processRecurring();   // if it's due today, log it now
+  openRecurring();
+}
+async function deleteRecurring(){
+  const r=state.recurring.find(x=>x.id===rfEditId); if(!r) return;
+  if(!(await appConfirm({icon:'🔁', title:`Stop “${r.note}”?`, msg:'It won’t log anymore. Anything it already logged stays in your activity.', ok:'Delete', danger:true}))) return;
+  state.recurring=state.recurring.filter(x=>x.id!==rfEditId); await save(); closeOv('recurFormOverlay'); openRecurring();
+}
+// "Make this recurring" from an existing purchase
+function makeRecurringFromEdit(){
+  const t=state.tx.find(x=>x.id===editingId); if(!t) return;
+  const d=new Date(t.ts);
+  closeAdd();
+  openRecurForm(null, { type:'exp', amt:t.amt, note:t.note||catMeta(t.cat).name, cat:t.cat, pay:t.pay, freq:'monthly' });
+  rfPickFreq('monthly', d.getDate());
+}
+
 // ---------- activity list with sorting ----------
 let txFilter='all';
 function setTxFilter(f){ txFilter=f; renderActivity(); }
@@ -2195,7 +2434,7 @@ function renderWhen(){
 
 document.getElementById('lockPass').addEventListener('keydown', e=>{ if(e.key==='Enter'){ if(lockMode==='unlock') lockSubmit(); else document.getElementById('lockPass2').focus(); }});
 document.getElementById('lockPass2').addEventListener('keydown', e=>{ if(e.key==='Enter') lockSubmit(); });
-['addOverlay','catOverlay','menuOverlay','growthOverlay','emojiOverlay','catDetailOverlay','reviewOverlay','payOverlay'].forEach(id=>{ document.getElementById(id).addEventListener('click', e=>{ if(e.target.id===id) document.getElementById(id).classList.remove('on'); }); });
+['addOverlay','catOverlay','menuOverlay','growthOverlay','emojiOverlay','catDetailOverlay','reviewOverlay','payOverlay','recurOverlay','recurFormOverlay'].forEach(id=>{ document.getElementById(id).addEventListener('click', e=>{ if(e.target.id===id) document.getElementById(id).classList.remove('on'); }); });
 document.getElementById('padOverlay').addEventListener('click', e=>{ if(e.target.id==='padOverlay') padCancel(); });
 document.getElementById('dlgOverlay').addEventListener('click', e=>{ if(e.target.id==='dlgOverlay') dlgClose(null); });
 document.getElementById('emojiCustom').addEventListener('keydown', e=>{ if(e.key==='Enter') useCustomEmoji(); });
